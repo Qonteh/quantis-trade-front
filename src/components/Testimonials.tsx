@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Star } from 'lucide-react';
+import { Star, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const TestimonialsSection = () => {
   const testimonials = [
@@ -28,10 +29,16 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <div className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+    <div className="py-24 bg-white relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-48 bg-quantis-purple/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-48 bg-quantis-blue/5 rounded-full blur-3xl"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-block py-1.5 px-3 rounded-full bg-quantis-purple/10 text-quantis-purple font-medium text-sm mb-4">
+            Testimonials
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display">
             What Our <span className="text-quantis-purple">Traders</span> Say
           </h2>
           <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
@@ -43,30 +50,49 @@ const TestimonialsSection = () => {
           {testimonials.map((testimonial, index) => (
             <div 
               key={index} 
-              className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow"
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow"
             >
               <div className="flex items-center mb-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star 
                     key={i}
-                    className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                    className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
                   />
                 ))}
               </div>
-              <p className="text-gray-700 mb-6">"{testimonial.content}"</p>
+              <p className="text-gray-700 mb-8 text-lg italic">"{testimonial.content}"</p>
               <div className="flex items-center">
                 <img 
                   src={testimonial.image} 
                   alt={testimonial.name} 
-                  className="h-12 w-12 rounded-full mr-4"
+                  className="h-12 w-12 rounded-full mr-4 object-cover border-2 border-gray-100"
                 />
                 <div>
-                  <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                  <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
                   <p className="text-sm text-gray-600">{testimonial.role}</p>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+        
+        <div className="flex justify-center mt-12">
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex space-x-2">
+              {[0, 1, 2].map((i) => (
+                <div 
+                  key={i} 
+                  className={`h-2.5 w-2.5 rounded-full ${i === 0 ? 'bg-quantis-purple' : 'bg-gray-300'}`}
+                ></div>
+              ))}
+            </div>
+            <Button variant="outline" size="icon" className="rounded-full h-10 w-10">
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

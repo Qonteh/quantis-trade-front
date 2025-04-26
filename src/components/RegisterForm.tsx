@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Shield, Globe, Clock, Users } from 'lucide-react';
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -52,38 +52,70 @@ const RegisterForm = () => {
   }
 
   const benefits = [
-    "Access to 10,000+ trading instruments",
-    "Ultra-fast execution with no requotes",
-    "Free demo account with $10,000 virtual funds",
-    "24/5 customer support"
+    {
+      icon: Globe,
+      text: "Access to 10,000+ trading instruments"
+    },
+    {
+      icon: Clock,
+      text: "Ultra-fast execution with no requotes"
+    },
+    {
+      icon: Users,
+      text: "Free demo account with $10,000 virtual funds"
+    },
+    {
+      icon: Shield,
+      text: "24/5 customer support in multiple languages"
+    }
   ];
 
   return (
-    <div className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="py-24 bg-gray-50 relative overflow-hidden">
+      <div className="absolute -left-40 bottom-0 w-80 h-80 bg-quantis-purple/5 rounded-full blur-3xl"></div>
+      <div className="absolute -right-40 top-0 w-80 h-80 bg-quantis-blue/5 rounded-full blur-3xl"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <div className="inline-block py-1.5 px-3 rounded-full bg-quantis-purple/10 text-quantis-purple font-medium text-sm mb-6">
+              Get Started
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display">
               Open Your <span className="text-quantis-purple">Trading Account</span>
             </h2>
             <p className="mt-4 text-xl text-gray-600">
               Get started in minutes and join thousands of traders worldwide.
             </p>
             
-            <div className="mt-8 space-y-4">
+            <div className="mt-10 space-y-4">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-center">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-quantis-purple/10 flex items-center justify-center">
-                    <Check className="h-4 w-4 text-quantis-purple" />
+                  <div className="h-10 w-10 rounded-full bg-quantis-purple/10 flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="h-5 w-5 text-quantis-purple" />
                   </div>
-                  <p className="ml-3 text-gray-700">{benefit}</p>
+                  <p className="ml-4 text-gray-700 font-medium">{benefit.text}</p>
                 </div>
               ))}
             </div>
+            
+            <div className="mt-12 bg-white rounded-2xl p-6 border border-gray-100 shadow-md">
+              <div className="flex items-start">
+                <div className="h-10 w-10 rounded-full bg-quantis-green/10 flex items-center justify-center mr-4 flex-shrink-0">
+                  <Check className="h-5 w-5 text-quantis-green" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">Regulated and Secure</h3>
+                  <p className="text-gray-600 mt-1">
+                    Quantis is a regulated broker that adheres to strict financial standards and protects client funds with segregated accounts.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Create Account</h3>
+          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 font-display">Create Account</h3>
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -92,9 +124,9 @@ const RegisterForm = () => {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel className="font-medium">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input placeholder="John Doe" className="h-12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -106,9 +138,9 @@ const RegisterForm = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="font-medium">Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" type="email" {...field} />
+                        <Input placeholder="john@example.com" type="email" className="h-12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -120,9 +152,9 @@ const RegisterForm = () => {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel className="font-medium">Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="+1 234 567 890" type="tel" {...field} />
+                        <Input placeholder="+1 234 567 890" type="tel" className="h-12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -134,9 +166,9 @@ const RegisterForm = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="font-medium">Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="••••••••" type="password" {...field} />
+                        <Input placeholder="••••••••" type="password" className="h-12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -152,11 +184,12 @@ const RegisterForm = () => {
                         <Checkbox 
                           checked={field.value} 
                           onCheckedChange={field.onChange} 
+                          className="data-[state=checked]:bg-quantis-purple data-[state=checked]:border-quantis-purple"
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-normal">
-                          I agree to the terms and conditions and privacy policy
+                        <FormLabel className="font-normal text-sm text-gray-700">
+                          I agree to the <a href="#" className="text-quantis-purple font-medium hover:underline">terms and conditions</a> and <a href="#" className="text-quantis-purple font-medium hover:underline">privacy policy</a>
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -166,14 +199,14 @@ const RegisterForm = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-quantis-purple hover:bg-quantis-secondary text-white"
+                  className="w-full bg-quantis-purple hover:bg-quantis-secondary text-white h-12 text-base rounded-xl"
                 >
                   Create Account <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </form>
             </Form>
             
-            <div className="mt-6 text-center text-sm text-gray-500">
+            <div className="mt-8 text-center text-sm text-gray-500">
               Already have an account? <a href="#" className="font-medium text-quantis-purple hover:underline">Log in</a>
             </div>
           </div>

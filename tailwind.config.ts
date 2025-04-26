@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				display: ['Poppins', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -54,12 +58,14 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				quantis: {
-					purple: '#9b87f5',
-					dark: '#1A1F2C',
-					secondary: '#7E69AB',
-					light: '#D6BCFA',
-					orange: '#F97316',
-					blue: '#0EA5E9'
+					purple: '#7C5DFA',
+					dark: '#131526',
+					secondary: '#5E4FC1',
+					light: '#9277FF',
+					orange: '#FF7A00',
+					blue: '#1DA1F2',
+					green: '#29CC6A',
+					red: '#ED1C24'
 				}
 			},
 			borderRadius: {
@@ -81,15 +87,25 @@ export default {
 					'50%': { transform: 'translateY(-10px)' }
 				},
 				'pulse-slow': {
-					'0%, 100%': { opacity: 1 },
-					'50%': { opacity: 0.8 }
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
+				},
+				'spin-slow': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
+				},
+				'bounce-subtle': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 6s ease-in-out infinite',
-				'pulse-slow': 'pulse-slow 3s ease-in-out infinite'
+				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+				'spin-slow': 'spin-slow 20s linear infinite',
+				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite'
 			}
 		}
 	},
