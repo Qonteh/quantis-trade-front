@@ -1,5 +1,6 @@
 
 const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -34,7 +35,18 @@ exports.register = async (req, res, next) => {
       verificationCodeExpires
     });
 
-    // In a real-world application, you would send an email with the verification code here
+    // Send email with verification code
+    const emailResult = await emailService.sendVerificationEmail(
+      email,
+      firstName,
+      verificationCode
+    );
+
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+    }
+
+    // Log for debugging (can be removed in production)
     console.log(`Verification code for ${email}: ${verificationCode}`);
 
     // Send token
@@ -129,6 +141,9 @@ exports.verifyEmail = async (req, res, next) => {
     user.verificationCodeExpires = null;
     await user.save();
 
+    // Send welcome email
+    await emailService.sendWelcomeEmail(user.email, user.firstName);
+
     return res.status(200).json({ 
       success: true, 
       message: 'Email successfully verified' 
@@ -169,7 +184,22 @@ exports.resendVerification = async (req, res, next) => {
     user.verificationCodeExpires = verificationCodeExpires;
     await user.save();
 
-    // In a real-world application, you would send an email with the verification code here
+    // Send email with verification code
+    const emailResult = await emailService.sendVerificationEmail(
+      email,
+      user.firstName,
+      verificationCode
+    );
+
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to send verification email' 
+      });
+    }
+
+    // Log for debugging (can be removed in production)
     console.log(`New verification code for ${email}: ${verificationCode}`);
 
     return res.status(200).json({ 

@@ -51,7 +51,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token) {
         try {
           const response = await AuthService.getCurrentUser();
-          setUser(response.data);
+          if (response.data) {
+            setUser(response.data);
+            localStorage.setItem('user', JSON.stringify(response.data));
+          }
         } catch (error) {
           console.error('Failed to fetch current user:', error);
           // If token is invalid or expired, logout
@@ -71,6 +74,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.data));
+      
+      toast({
+        title: "Registration successful",
+        description: "Please check your email for verification code",
+        variant: "default",
+      });
+      
       setLoading(false);
       return response.data;
     } catch (error: any) {
@@ -90,6 +100,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await AuthService.login(email, password);
       setUser(response.data);
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back to Quantis FX",
+        variant: "default",
+      });
+      
       setLoading(false);
       return response.data;
     } catch (error: any) {
@@ -107,6 +124,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     AuthService.logout();
     setUser(null);
+    
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out",
+      variant: "default",
+    });
+    
     // Redirect to login page or home
     window.location.href = '/';
   };
@@ -119,9 +143,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Update the user's verified status
       setUser(prevUser => {
         if (prevUser) {
-          return { ...prevUser, isVerified: true };
+          const updatedUser = { ...prevUser, isVerified: true };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          return updatedUser;
         }
         return prevUser;
+      });
+      
+      toast({
+        title: "Email verified",
+        description: "Your email has been successfully verified",
+        variant: "default",
       });
       
       return response;
@@ -138,7 +170,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Resend verification code
   const resendVerification = async (email: string) => {
     try {
-      return await AuthService.resendVerification(email);
+      const response = await AuthService.resendVerification(email);
+      
+      toast({
+        title: "Verification code sent",
+        description: "Please check your email for the new verification code",
+        variant: "default",
+      });
+      
+      return response;
     } catch (error: any) {
       toast({
         title: "Failed to resend code",
@@ -155,6 +195,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await AuthService.updateProfile(userData);
       setUser(response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated",
+        variant: "default",
+      });
+      
       return response.data;
     } catch (error: any) {
       toast({
