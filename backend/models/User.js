@@ -1,94 +1,106 @@
 
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const UserSchema = new mongoose.Schema({
+const User = sequelize.define('User', {
   firstName: {
-    type: String,
-    required: [true, 'Please add a first name'],
-    trim: true,
-    maxlength: [50, 'First name cannot be more than 50 characters']
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: 'Please add a first name'
+      }
+    }
   },
   lastName: {
-    type: String,
-    required: [true, 'Please add a last name'],
-    trim: true,
-    maxlength: [50, 'Last name cannot be more than 50 characters']
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: 'Please add a last name'
+      }
+    }
   },
   email: {
-    type: String,
-    required: [true, 'Please add an email'],
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Please add a valid email'
-    ]
+    validate: {
+      isEmail: {
+        msg: 'Please add a valid email'
+      }
+    }
   },
   countryCode: {
-    type: String,
-    required: [true, 'Please add a country code']
+    type: DataTypes.STRING,
+    allowNull: false
   },
   phone: {
-    type: String,
-    required: [true, 'Please add a phone number']
+    type: DataTypes.STRING,
+    allowNull: false
   },
   password: {
-    type: String,
-    required: [true, 'Please add a password'],
-    minlength: 8,
-    select: false
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      len: {
+        args: [8],
+        msg: 'Password must be at least 8 characters'
+      }
+    }
   },
   role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user'
   },
   isVerified: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   verificationCode: {
-    code: String,
-    expiresAt: Date
+    type: DataTypes.STRING
+  },
+  verificationCodeExpires: {
+    type: DataTypes.DATE
   },
   walletBalance: {
-    type: Number,
-    default: 0
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
   },
   demoBalance: {
-    type: Number,
-    default: 10000 // $10,000 virtual funds
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 10000
   }
-});
-
-// Encrypt password using bcrypt
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    next();
+}, {
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    }
   }
-  
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 // Match user entered password to hashed password in database
-UserSchema.methods.matchPassword = async function(enteredPassword) {
+User.prototype.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // Sign JWT and return
-UserSchema.methods.getSignedJwtToken = function() {
-  return jwt.sign(
-    { id: this._id }, 
-    process.env.JWT_SECRET, 
-    { expiresIn: process.env.JWT_EXPIRE }
-  );
+User.prototype.getSignedJwtToken = function() {
+  return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE
+  });
 };
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = User;

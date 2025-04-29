@@ -1,12 +1,14 @@
 
 const User = require('../models/User');
+const Transaction = require('../models/Transaction');
+const { sequelize } = require('../config/db');
 
 // @desc    Get wallet balance
 // @route   GET /api/trading/balance
 // @access  Private
 exports.getWalletBalance = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findByPk(req.user.id);
     
     res.status(200).json({
       success: true,
@@ -24,6 +26,8 @@ exports.getWalletBalance = async (req, res, next) => {
 // @route   POST /api/trading/deposit
 // @access  Private
 exports.deposit = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  
   try {
     const { amount } = req.body;
 
@@ -37,11 +41,21 @@ exports.deposit = async (req, res, next) => {
     // In a real application, you would integrate with a payment processor here
 
     // Update user balance
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $inc: { walletBalance: amount } },
-      { new: true }
-    );
+    const user = await User.findByPk(req.user.id, { transaction: t });
+    
+    user.walletBalance = parseFloat(user.walletBalance) + parseFloat(amount);
+    await user.save({ transaction: t });
+    
+    // Create transaction record
+    await Transaction.create({
+      userId: req.user.id,
+      type: 'deposit',
+      amount,
+      status: 'completed',
+      reference: `DEP-${Date.now()}`
+    }, { transaction: t });
+
+    await t.commit();
 
     res.status(200).json({
       success: true,
@@ -51,6 +65,7 @@ exports.deposit = async (req, res, next) => {
       }
     });
   } catch (err) {
+    await t.rollback();
     next(err);
   }
 };
@@ -59,6 +74,8 @@ exports.deposit = async (req, res, next) => {
 // @route   POST /api/trading/withdraw
 // @access  Private
 exports.withdraw = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  
   try {
     const { amount } = req.body;
 
@@ -69,10 +86,10 @@ exports.withdraw = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(req.user.id);
+    const user = await User.findByPk(req.user.id, { transaction: t });
 
     // Check if user has enough balance
-    if (user.walletBalance < amount) {
+    if (parseFloat(user.walletBalance) < parseFloat(amount)) {
       return res.status(400).json({ 
         success: false, 
         error: 'Insufficient funds' 
@@ -82,8 +99,19 @@ exports.withdraw = async (req, res, next) => {
     // In a real application, you would initiate a withdrawal process here
 
     // Update user balance
-    user.walletBalance -= amount;
-    await user.save();
+    user.walletBalance = parseFloat(user.walletBalance) - parseFloat(amount);
+    await user.save({ transaction: t });
+    
+    // Create transaction record
+    await Transaction.create({
+      userId: req.user.id,
+      type: 'withdraw',
+      amount,
+      status: 'completed',
+      reference: `WDR-${Date.now()}`
+    }, { transaction: t });
+
+    await t.commit();
 
     res.status(200).json({
       success: true,
@@ -93,6 +121,7 @@ exports.withdraw = async (req, res, next) => {
       }
     });
   } catch (err) {
+    await t.rollback();
     next(err);
   }
 };
@@ -101,6 +130,8 @@ exports.withdraw = async (req, res, next) => {
 // @route   POST /api/trading/transfer
 // @access  Private
 exports.transfer = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  
   try {
     const { toEmail, amount } = req.body;
 
@@ -111,10 +142,10 @@ exports.transfer = async (req, res, next) => {
       });
     }
 
-    const sender = await User.findById(req.user.id);
+    const sender = await User.findByPk(req.user.id, { transaction: t });
 
     // Check if sender has enough balance
-    if (sender.walletBalance < amount) {
+    if (parseFloat(sender.walletBalance) < parseFloat(amount)) {
       return res.status(400).json({ 
         success: false, 
         error: 'Insufficient funds' 
@@ -122,7 +153,10 @@ exports.transfer = async (req, res, next) => {
     }
 
     // Find receiver
-    const receiver = await User.findOne({ email: toEmail });
+    const receiver = await User.findOne({ 
+      where: { email: toEmail },
+      transaction: t
+    });
 
     if (!receiver) {
       return res.status(404).json({ 
@@ -132,11 +166,32 @@ exports.transfer = async (req, res, next) => {
     }
 
     // Update balances
-    sender.walletBalance -= amount;
-    receiver.walletBalance += amount;
+    sender.walletBalance = parseFloat(sender.walletBalance) - parseFloat(amount);
+    receiver.walletBalance = parseFloat(receiver.walletBalance) + parseFloat(amount);
 
-    await sender.save();
-    await receiver.save();
+    await sender.save({ transaction: t });
+    await receiver.save({ transaction: t });
+    
+    // Create transaction records
+    await Transaction.create({
+      userId: sender.id,
+      type: 'transfer_out',
+      amount,
+      status: 'completed',
+      reference: `TRF-${Date.now()}`,
+      relatedUserId: receiver.id
+    }, { transaction: t });
+    
+    await Transaction.create({
+      userId: receiver.id,
+      type: 'transfer_in',
+      amount,
+      status: 'completed',
+      reference: `TRF-${Date.now()}`,
+      relatedUserId: sender.id
+    }, { transaction: t });
+
+    await t.commit();
 
     res.status(200).json({
       success: true,
@@ -147,6 +202,7 @@ exports.transfer = async (req, res, next) => {
       }
     });
   } catch (err) {
+    await t.rollback();
     next(err);
   }
 };
@@ -156,25 +212,14 @@ exports.transfer = async (req, res, next) => {
 // @access  Private
 exports.getTransactionHistory = async (req, res, next) => {
   try {
-    // In a real application, you would query a transactions collection
-    // For this example, we'll return a mock response
-    
+    const transactions = await Transaction.findAll({
+      where: { userId: req.user.id },
+      order: [['createdAt', 'DESC']]
+    });
+
     res.status(200).json({
       success: true,
-      data: [
-        {
-          id: '1',
-          type: 'deposit',
-          amount: 1000,
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-        },
-        {
-          id: '2',
-          type: 'withdraw',
-          amount: 500,
-          date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
-        }
-      ]
+      data: transactions
     });
   } catch (err) {
     next(err);

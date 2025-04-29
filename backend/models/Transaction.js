@@ -1,37 +1,40 @@
 
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const TransactionSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: true
+const Transaction = sequelize.define('Transaction', {
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   },
   type: {
-    type: String,
-    enum: ['deposit', 'withdraw', 'transfer_in', 'transfer_out'],
-    required: true
+    type: DataTypes.ENUM('deposit', 'withdraw', 'transfer_in', 'transfer_out'),
+    allowNull: false
   },
   amount: {
-    type: Number,
-    required: true
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
   },
   status: {
-    type: String,
-    enum: ['pending', 'completed', 'failed'],
-    default: 'pending'
+    type: DataTypes.ENUM('pending', 'completed', 'failed'),
+    defaultValue: 'pending'
   },
   reference: {
-    type: String
+    type: DataTypes.STRING
   },
-  relatedUser: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  relatedUserId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   }
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('Transaction', TransactionSchema);
+module.exports = Transaction;

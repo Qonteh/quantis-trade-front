@@ -1,6 +1,5 @@
 
 const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -10,7 +9,7 @@ exports.register = async (req, res, next) => {
     const { firstName, lastName, email, countryCode, phone, password } = req.body;
 
     // Check if user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ where: { email } });
 
     if (userExists) {
       return res.status(400).json({ 
@@ -20,10 +19,8 @@ exports.register = async (req, res, next) => {
     }
 
     // Generate verification code
-    const verificationCode = {
-      code: Math.floor(100000 + Math.random() * 900000).toString(), // 6-digit code
-      expiresAt: new Date(Date.now() + 30 * 60000) // 30 minutes
-    };
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+    const verificationCodeExpires = new Date(Date.now() + 30 * 60000); // 30 minutes
 
     // Create user
     const user = await User.create({
@@ -33,11 +30,12 @@ exports.register = async (req, res, next) => {
       countryCode,
       phone,
       password,
-      verificationCode
+      verificationCode,
+      verificationCodeExpires
     });
 
     // In a real-world application, you would send an email with the verification code here
-    console.log(`Verification code for ${email}: ${verificationCode.code}`);
+    console.log(`Verification code for ${email}: ${verificationCode}`);
 
     // Send token
     sendTokenResponse(user, 201, res);
@@ -62,7 +60,9 @@ exports.login = async (req, res, next) => {
     }
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ 
+      where: { email } 
+    });
 
     if (!user) {
       return res.status(401).json({ 
@@ -95,7 +95,7 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     const { userId, verificationCode } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
 
     if (!user) {
       return res.status(404).json({ 
@@ -114,8 +114,8 @@ exports.verifyEmail = async (req, res, next) => {
     // Check if verification code is valid and not expired
     if (
       !user.verificationCode ||
-      user.verificationCode.code !== verificationCode ||
-      new Date() > new Date(user.verificationCode.expiresAt)
+      user.verificationCode !== verificationCode ||
+      new Date() > new Date(user.verificationCodeExpires)
     ) {
       return res.status(400).json({ 
         success: false, 
@@ -125,7 +125,8 @@ exports.verifyEmail = async (req, res, next) => {
 
     // Update user to verified
     user.isVerified = true;
-    user.verificationCode = undefined;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
     await user.save();
 
     return res.status(200).json({ 
@@ -144,7 +145,7 @@ exports.resendVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
       return res.status(404).json({ 
@@ -161,16 +162,15 @@ exports.resendVerification = async (req, res, next) => {
     }
 
     // Generate new verification code
-    const verificationCode = {
-      code: Math.floor(100000 + Math.random() * 900000).toString(), // 6-digit code
-      expiresAt: new Date(Date.now() + 30 * 60000) // 30 minutes
-    };
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+    const verificationCodeExpires = new Date(Date.now() + 30 * 60000); // 30 minutes
 
     user.verificationCode = verificationCode;
+    user.verificationCodeExpires = verificationCodeExpires;
     await user.save();
 
     // In a real-world application, you would send an email with the verification code here
-    console.log(`New verification code for ${email}: ${verificationCode.code}`);
+    console.log(`New verification code for ${email}: ${verificationCode}`);
 
     return res.status(200).json({ 
       success: true, 
@@ -186,7 +186,9 @@ exports.resendVerification = async (req, res, next) => {
 // @access  Private
 exports.getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password', 'verificationCode', 'verificationCodeExpires'] }
+    });
     
     res.status(200).json({
       success: true,
@@ -210,11 +212,16 @@ exports.updateProfile = async (req, res, next) => {
     if (lastName) updateFields.lastName = lastName;
     if (phone) updateFields.phone = phone;
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updateFields,
-      { new: true, runValidators: true }
-    );
+    const user = await User.findByPk(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+    
+    await user.update(updateFields);
 
     res.status(200).json({
       success: true,
@@ -232,7 +239,7 @@ exports.updatePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user.id).select('+password');
+    const user = await User.findByPk(req.user.id);
 
     // Check current password
     if (!(await user.matchPassword(currentPassword))) {
@@ -256,21 +263,23 @@ const sendTokenResponse = (user, statusCode, res) => {
   // Create token
   const token = user.getSignedJwtToken();
 
-  const options = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true
+  const userResponse = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    countryCode: user.countryCode,
+    phone: user.phone,
+    role: user.role,
+    isVerified: user.isVerified,
+    walletBalance: user.walletBalance,
+    demoBalance: user.demoBalance,
+    createdAt: user.createdAt
   };
 
-  // Remove password from output
-  user.password = undefined;
-
-  res
-    .status(statusCode)
-    .json({
-      success: true,
-      token,
-      data: user
-    });
+  res.status(statusCode).json({
+    success: true,
+    token,
+    data: userResponse
+  });
 };
