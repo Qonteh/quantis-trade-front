@@ -85,12 +85,16 @@ const Navigation = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" className="text-gray-700 font-medium">
+        <a href="/register" className="font-medium text-[#7C3AED] hover:underline">
+                
+              <Button variant="ghost" className="text-gray-700 font-medium">
             Log In
-          </Button>
-          <Button className="bg-quantis-purple hover:bg-quantis-secondary text-white font-medium">
+          </Button></a>
+          <a href="/register" className="font-medium text-[#7C3AED] hover:underline">
+               
+              <Button className="bg-quantis-purple hover:bg-quantis-secondary text-white font-medium">
             Open Account
-          </Button>
+          </Button></a>
         </div>
 
         {/* Mobile Menu Button */}
