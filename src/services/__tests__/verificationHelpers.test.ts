@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useVerificationHelpers } from '../verificationHelpers';
 import { AuthService } from '../api';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { ApiError } from '@/types/api.types';
 
 // Mock dependencies
 vi.mock('../api', () => ({
@@ -78,7 +79,7 @@ describe('useVerificationHelpers', () => {
       const userId = '123';
       const code = '000000';
       
-      const error = new Error('Verification failed');
+      const error = new Error('Verification failed') as ApiError;
       error.response = { data: { error: 'Invalid verification code' } };
       
       vi.mocked(AuthService.verifyEmail).mockRejectedValueOnce(error);
@@ -120,7 +121,7 @@ describe('useVerificationHelpers', () => {
       // Arrange
       const email = 'john@example.com';
       
-      const error = new Error('Failed to resend code');
+      const error = new Error('Failed to resend code') as ApiError;
       error.response = { data: { error: 'User not found' } };
       
       vi.mocked(AuthService.resendVerification).mockRejectedValueOnce(error);
@@ -167,7 +168,7 @@ describe('useVerificationHelpers', () => {
       // Arrange
       const userData = { firstName: 'John', lastName: 'Doe' };
       
-      const error = new Error('Update failed');
+      const error = new Error('Update failed') as ApiError;
       error.response = { data: { error: 'Failed to update profile' } };
       
       vi.mocked(AuthService.updateProfile).mockRejectedValueOnce(error);

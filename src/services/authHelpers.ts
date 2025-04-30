@@ -2,6 +2,7 @@
 import { AuthService } from './api';
 import { User } from '../types/user.types';
 import { useToast } from '@/hooks/use-toast';
+import { ApiError } from '@/types/api.types';
 
 export const useAuthHelpers = () => {
   const { toast } = useToast();
@@ -20,9 +21,10 @@ export const useAuthHelpers = () => {
       
       return response.data;
     } catch (error: any) {
+      const apiError = error as ApiError;
       toast({
         title: "Registration failed",
-        description: error.response?.data?.error || "An error occurred during registration",
+        description: apiError.response?.data?.error || "An error occurred during registration",
         variant: "destructive",
       });
       throw error;
@@ -41,9 +43,10 @@ export const useAuthHelpers = () => {
       
       return response.data;
     } catch (error: any) {
+      const apiError = error as ApiError;
       toast({
         title: "Login failed",
-        description: error.response?.data?.error || "Invalid credentials",
+        description: apiError.response?.data?.error || "Invalid credentials",
         variant: "destructive",
       });
       throw error;

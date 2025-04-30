@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useAuthHelpers } from '../authHelpers';
 import { AuthService } from '../api';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { ApiError } from '@/types/api.types';
 
 // Mock dependencies
 vi.mock('../api', () => ({
@@ -102,7 +103,7 @@ describe('useAuthHelpers', () => {
         phone: '1234567890'
       };
       
-      const error = new Error('Registration failed');
+      const error = new Error('Registration failed') as ApiError;
       error.response = { data: { error: 'Email already exists' } };
       
       vi.mocked(AuthService.register).mockRejectedValueOnce(error);
@@ -154,7 +155,7 @@ describe('useAuthHelpers', () => {
       const email = 'john@example.com';
       const password = 'wrongpassword';
       
-      const error = new Error('Login failed');
+      const error = new Error('Login failed') as ApiError;
       error.response = { data: { error: 'Invalid credentials' } };
       
       vi.mocked(AuthService.login).mockRejectedValueOnce(error);

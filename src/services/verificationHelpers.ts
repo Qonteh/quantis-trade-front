@@ -1,6 +1,7 @@
 
 import { AuthService } from './api';
 import { useToast } from '@/hooks/use-toast';
+import { ApiError } from '@/types/api.types';
 
 export const useVerificationHelpers = () => {
   const { toast } = useToast();
@@ -17,9 +18,10 @@ export const useVerificationHelpers = () => {
       
       return response;
     } catch (error: any) {
+      const apiError = error as ApiError;
       toast({
         title: "Verification failed",
-        description: error.response?.data?.error || "Invalid verification code",
+        description: apiError.response?.data?.error || "Invalid verification code",
         variant: "destructive",
       });
       throw error;
@@ -38,9 +40,10 @@ export const useVerificationHelpers = () => {
       
       return response;
     } catch (error: any) {
+      const apiError = error as ApiError;
       toast({
         title: "Failed to resend code",
-        description: error.response?.data?.error || "An error occurred",
+        description: apiError.response?.data?.error || "An error occurred",
         variant: "destructive",
       });
       throw error;
@@ -60,9 +63,10 @@ export const useVerificationHelpers = () => {
       
       return response.data;
     } catch (error: any) {
+      const apiError = error as ApiError;
       toast({
         title: "Update failed",
-        description: error.response?.data?.error || "Failed to update profile",
+        description: apiError.response?.data?.error || "Failed to update profile",
         variant: "destructive",
       });
       throw error;
