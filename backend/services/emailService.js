@@ -1,11 +1,17 @@
 
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Set SendGrid API Key
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Create a transporter object
+const transporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE,
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
 
 /**
  * Send verification email with code
@@ -15,9 +21,9 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
  */
 exports.sendVerificationEmail = async (email, firstName, verificationCode) => {
   try {
-    const msg = {
-      to: email,
+    const mailOptions = {
       from: process.env.FROM_EMAIL,
+      to: email,
       subject: 'Verify Your Quantis FX Account',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
@@ -44,7 +50,8 @@ exports.sendVerificationEmail = async (email, firstName, verificationCode) => {
       `
     };
     
-    await sgMail.send(msg);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ' + info.response);
     return { success: true };
   } catch (error) {
     console.error('Email sending error:', error);
@@ -59,9 +66,9 @@ exports.sendVerificationEmail = async (email, firstName, verificationCode) => {
  */
 exports.sendWelcomeEmail = async (email, firstName) => {
   try {
-    const msg = {
-      to: email,
+    const mailOptions = {
       from: process.env.FROM_EMAIL,
+      to: email,
       subject: 'Welcome to Quantis FX!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
@@ -90,7 +97,8 @@ exports.sendWelcomeEmail = async (email, firstName) => {
       `
     };
     
-    await sgMail.send(msg);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ' + info.response);
     return { success: true };
   } catch (error) {
     console.error('Email sending error:', error);
