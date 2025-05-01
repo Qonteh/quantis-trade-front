@@ -12,8 +12,10 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest', // Adding this header can help with some CORS configurations
   },
   timeout: 30000, // 30 second timeout - increased for potential slower local development
+  withCredentials: false, // Set to false to avoid CORS preflight issues
 });
 
 // Add a request interceptor to inject the auth token
@@ -34,6 +36,20 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
+    // Handle CORS errors
+    if (error.message && error.message.includes('Network Error')) {
+      console.error('CORS or Network Error: Unable to connect to the server.');
+      console.error('Please ensure your XAMPP server is running and properly configured for CORS.');
+      console.error('Check that mod_headers is enabled in your Apache configuration.');
+      return Promise.reject({
+        response: {
+          data: {
+            error: 'Network Error: Unable to connect to the server. Please check your XAMPP services are running and Apache is correctly configured for CORS.'
+          }
+        }
+      });
+    }
+    
     // Handle network errors
     if (!error.response) {
       console.error('Network Error: Unable to connect to the server.');
