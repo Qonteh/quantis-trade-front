@@ -2,9 +2,10 @@
 import axios from 'axios';
 
 // Use the appropriate API URL based on environment
+// For XAMPP, we typically use http://localhost/your-project-folder/api
 const API_URL = import.meta.env.PROD 
   ? 'https://quantis-trade-back.herokuapp.com/api'  // Production URL (replace with your actual deployed backend URL)
-  : 'http://localhost:5000/api'; // Development URL
+  : 'http://localhost/quantisfx/api'; // Local XAMPP path - adjust the folder name if different
 
 // Create axios instance with timeout
 const api = axios.create({
@@ -12,7 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second timeout
+  timeout: 30000, // 30 second timeout - increased for potential slower local development
 });
 
 // Add a request interceptor to inject the auth token
@@ -39,7 +40,7 @@ api.interceptors.response.use(
       return Promise.reject({
         response: {
           data: {
-            error: 'Network Error: Unable to connect to the server. Please check your internet connection or try again later.'
+            error: 'Network Error: Unable to connect to the server. Please check your XAMPP services are running and Apache is started.'
           }
         }
       });
