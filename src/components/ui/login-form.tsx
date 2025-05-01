@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
@@ -10,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Loader2, Shield, Globe, Clock, Users, Lock } from 'lucide-react'
+import { useAuth } from "@/context/UserContext"
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -34,12 +36,20 @@ const QuantisLogo = ({ className = "", darkMode = false }) => (
 
 const LoginForm = () => {
   const navigate = useNavigate()
+  const { login, isAuthenticated, loading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [statusText, setStatusText] = useState("")
   const [loginError, setLoginError] = useState("")
+
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -50,17 +60,14 @@ const LoginForm = () => {
     },
   })
 
-  function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     setLoginError("")
     setIsSubmitting(true)
-
-    // Simulate form submission and authentication
-    setTimeout(() => {
-      // For demo purposes, successful login
-      setIsSubmitting(false)
-      setIsLoading(true)
-      setStatusText("Authenticating...")
+    
+    try {
+      await login(values.email, values.password);
+      setIsLoading(true);
+      setStatusText("Authenticating...");
       
       // Simulate loading process
       const interval = setInterval(() => {
@@ -84,8 +91,10 @@ const LoginForm = () => {
           return newProgress
         })
       }, 300)
-      
-    }, 1500)
+    } catch (error: any) {
+      setIsSubmitting(false)
+      setLoginError(error.message || "Login failed. Please check your credentials and try again.")
+    }
   }
 
   const benefits = [
@@ -112,15 +121,15 @@ const LoginForm = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full mx-auto text-center">
-          <div className="mb-8 flex justify-center">
-            <QuantisLogo className="text-4xl" />
+          <div className="mb-6 flex justify-center">
+            <QuantisLogo className="text-3xl" />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600 mb-8">{statusText}</p>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p className="text-sm text-gray-600 mb-6">{statusText}</p>
 
-          <div className="relative pt-1 mb-8">
-            <div className="overflow-hidden h-2 text-xs flex rounded-full bg-gray-200">
+          <div className="relative pt-1 mb-6">
+            <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-gray-200">
               <div
                 style={{ width: `${progress}%` }}
                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#7C3AED] transition-all duration-300 ease-in-out"
@@ -129,8 +138,8 @@ const LoginForm = () => {
           </div>
 
           <div className="flex items-center justify-center">
-            <Loader2 className="h-8 w-8 text-[#7C3AED] animate-spin mr-3" />
-            <span className="text-gray-700 font-medium">{Math.round(progress)}%</span>
+            <Loader2 className="h-6 w-6 text-[#7C3AED] animate-spin mr-3" />
+            <span className="text-sm text-gray-700 font-medium">{Math.round(progress)}%</span>
           </div>
         </div>
       </div>
@@ -139,42 +148,42 @@ const LoginForm = () => {
 
   // Show login form
   return (
-    <div className="py-24 bg-gray-50 relative overflow-hidden min-h-screen">
+    <div className="py-16 md:py-20 bg-gray-50 relative overflow-hidden min-h-screen">
       <div className="absolute -left-40 bottom-0 w-80 h-80 bg-[#7C3AED]/5 rounded-full blur-3xl"></div>
       <div className="absolute -right-40 top-0 w-80 h-80 bg-[#7C3AED]/5 rounded-full blur-3xl"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div>
-            <div className="inline-block py-1.5 px-3 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] font-medium text-sm mb-6">
+            <div className="inline-block py-1 px-2.5 rounded-full bg-[#7C3AED]/10 text-[#7C3AED] font-medium text-xs mb-4">
               Welcome Back
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-display">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 font-display leading-tight">
               Log in to <span className="text-[#7C3AED]">Quantis FX</span>
             </h2>
-            <p className="mt-4 text-xl text-gray-600">
+            <p className="mt-3 text-base text-gray-600">
               Access your account to start trading on global markets.
             </p>
 
-            <div className="mt-10 space-y-4">
+            <div className="mt-8 space-y-3">
               {benefits.map((benefit, index) => (
                 <div key={index} className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-[#7C3AED]/10 flex items-center justify-center flex-shrink-0">
-                    <benefit.icon className="h-5 w-5 text-[#7C3AED]" />
+                  <div className="h-8 w-8 rounded-full bg-[#7C3AED]/10 flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="h-4 w-4 text-[#7C3AED]" />
                   </div>
-                  <p className="ml-4 text-gray-700 font-medium">{benefit.text}</p>
+                  <p className="ml-3 text-sm text-gray-700">{benefit.text}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-12 bg-white rounded-2xl p-6 border border-gray-100 shadow-md">
+            <div className="mt-8 bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
               <div className="flex items-start">
-                <div className="h-10 w-10 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mr-4 flex-shrink-0">
-                  <Lock className="h-5 w-5 text-[#7C3AED]" />
+                <div className="h-8 w-8 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mr-3 flex-shrink-0">
+                  <Lock className="h-4 w-4 text-[#7C3AED]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">Secure Trading Platform</h3>
-                  <p className="text-gray-600 mt-1">
+                  <h3 className="font-medium text-gray-900 text-sm">Secure Trading Platform</h3>
+                  <p className="text-gray-600 mt-1 text-xs">
                     Quantis FX employs advanced encryption and security measures to ensure your account and personal information remain protected.
                   </p>
                 </div>
@@ -182,31 +191,31 @@ const LoginForm = () => {
             </div>
           </div>
 
-          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-            <div className="flex justify-center mb-8">
-              <QuantisLogo className="text-3xl" />
+          <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex justify-center mb-6">
+              <QuantisLogo className="text-2xl" />
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-900 mb-8 font-display text-center">Log In</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-6 font-display text-center">Log In</h3>
 
             {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 text-sm">
                 {loginError}
               </div>
             )}
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-medium">Email</FormLabel>
+                      <FormLabel className="text-sm font-medium">Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" type="email" className="h-12" {...field} />
+                        <Input placeholder="john@example.com" type="email" className="h-10 text-sm" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -217,8 +226,8 @@ const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
-                        <FormLabel className="font-medium">Password</FormLabel>
-                        <a href="#" className="text-sm text-[#7C3AED] hover:underline">
+                        <FormLabel className="text-sm font-medium">Password</FormLabel>
+                        <a href="#" className="text-xs text-[#7C3AED] hover:underline">
                           Forgot password?
                         </a>
                       </div>
@@ -227,7 +236,7 @@ const LoginForm = () => {
                           <Input
                             placeholder="••••••••"
                             type={showPassword ? "text" : "password"}
-                            className="h-12 pr-10"
+                            className="h-10 pr-10 text-sm"
                             {...field}
                           />
                           <button
@@ -235,11 +244,11 @@ const LoginForm = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                           >
-                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -248,7 +257,7 @@ const LoginForm = () => {
                   control={form.control}
                   name="rememberMe"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                       <FormControl>
                         <Checkbox
                           checked={field.value}
@@ -257,7 +266,7 @@ const LoginForm = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-normal text-sm text-gray-700">
+                        <FormLabel className="font-normal text-xs text-gray-700">
                           Remember me
                         </FormLabel>
                       </div>
@@ -267,12 +276,12 @@ const LoginForm = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white h-12 text-base rounded-xl"
+                  className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white h-10 text-sm rounded-lg"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Authenticating...
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" /> Authenticating...
                     </>
                   ) : (
                     "Log In"
@@ -281,7 +290,7 @@ const LoginForm = () => {
               </form>
             </Form>
 
-            <div className="mt-8 text-center text-sm text-gray-500">
+            <div className="mt-6 text-center text-xs text-gray-500">
               Don't have an account?{" "}
               <a href="/register" className="font-medium text-[#7C3AED] hover:underline">
                 Register
@@ -292,22 +301,22 @@ const LoginForm = () => {
       </div>
 
       {/* Footer with dark background */}
-      <footer className="mt-24 bg-[#2D1B69] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <footer className="mt-16 bg-[#2D1B69] text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
-              <div className="flex items-baseline mb-4">
-                <QuantisLogo className="text-2xl" darkMode={true} />
+              <div className="flex items-baseline mb-3">
+                <QuantisLogo className="text-xl" darkMode={true} />
               </div>
-              <p className="text-gray-300 text-sm mb-6">
+              <p className="text-gray-300 text-xs mb-4">
                 Your trusted partner for online trading, providing access to global markets with advanced tools and
                 exceptional support.
               </p>
             </div>
 
             <div>
-              <h4 className="font-medium text-white mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm">
+              <h4 className="font-medium text-white mb-3 text-sm">Quick Links</h4>
+              <ul className="space-y-1.5 text-xs">
                 <li>
                   <a href="#" className="text-[#9D6FFF] hover:underline">
                     About Us
@@ -342,8 +351,8 @@ const LoginForm = () => {
             </div>
 
             <div>
-              <h4 className="font-medium text-white mb-4">Trading</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <h4 className="font-medium text-white mb-3 text-sm">Trading</h4>
+              <div className="grid grid-cols-2 gap-1.5 text-xs">
                 <a href="#" className="text-[#9D6FFF] hover:underline">
                   Forex
                 </a>
@@ -366,21 +375,21 @@ const LoginForm = () => {
             </div>
 
             <div>
-              <h4 className="font-medium text-white mb-4">Contact</h4>
-              <p className="text-gray-300 text-sm mb-1">1234 Trading Street, Financial District, 10001</p>
-              <p className="text-gray-300 text-sm mb-1">+1 (800) 123-4567</p>
-              <p className="text-gray-300 text-sm mb-4">info@quantis.com</p>
+              <h4 className="font-medium text-white mb-3 text-sm">Contact</h4>
+              <p className="text-gray-300 text-xs mb-1">1234 Trading Street, Financial District, 10001</p>
+              <p className="text-gray-300 text-xs mb-1">+1 (800) 123-4567</p>
+              <p className="text-gray-300 text-xs mb-3">info@quantis.com</p>
 
-              <h4 className="font-medium text-white mb-2">Trading Hours</h4>
-              <p className="text-gray-300 text-sm mb-1">Monday to Friday: 24/5</p>
-              <p className="text-gray-300 text-sm">Weekend: Crypto only</p>
+              <h4 className="font-medium text-white mb-2 text-sm">Trading Hours</h4>
+              <p className="text-gray-300 text-xs mb-1">Monday to Friday: 24/5</p>
+              <p className="text-gray-300 text-xs">Weekend: Crypto only</p>
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-[#3D2B79]">
+          <div className="mt-8 pt-6 border-t border-[#3D2B79]">
             <div className="flex flex-col md:flex-row justify-between">
-              <p className="text-sm text-gray-300 mb-4 md:mb-0">© 2025 Quantis. All rights reserved.</p>
-              <div className="flex flex-wrap gap-4 text-sm">
+              <p className="text-xs text-gray-300 mb-3 md:mb-0">© 2025 Quantis. All rights reserved.</p>
+              <div className="flex flex-wrap gap-3 text-xs">
                 <a href="#" className="text-[#9D6FFF] hover:underline">
                   Terms of Service
                 </a>
@@ -395,7 +404,7 @@ const LoginForm = () => {
                 </a>
               </div>
             </div>
-            <p className="mt-6 text-xs text-gray-400 leading-relaxed">
+            <p className="mt-4 text-[10px] text-gray-400 leading-relaxed">
               Risk Warning: Trading derivatives and leveraged products carries a high level of risk, including the risk
               of losing substantially more than your initial investment. It is not suitable for all investors. Before
               you make any decision in relation to a financial product you should obtain and consider our Product

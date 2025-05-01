@@ -101,6 +101,10 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+  
   .glass {
     @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg;
   }
@@ -116,7 +120,33 @@
   .hero-gradient {
     @apply bg-gradient-to-br from-quantis-dark via-[#272b3d] to-[#1d1e2c];
   }
+
+  /* Responsive typography */
+  h1 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
   
+  h2 {
+    @apply text-xl md:text-2xl lg:text-3xl;
+  }
+  
+  h3 {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+  
+  p {
+    @apply text-sm md:text-base;
+  }
+  
+  .text-xs {
+    @apply text-[0.75rem] leading-[1.1rem];
+  }
+  
+  .text-sm {
+    @apply text-[0.875rem] leading-[1.25rem];
+  }
+  
+  /* Animation classes */
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }

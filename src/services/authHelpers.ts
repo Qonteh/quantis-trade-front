@@ -10,8 +10,20 @@ export const useAuthHelpers = () => {
   const register = async (userData: any) => {
     try {
       const response = await AuthService.register(userData);
+      
+      // Only store token, not user data yet (since email not verified)
       localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      
+      // Store partial user data
+      const partialUserData = {
+        id: response.data.id,
+        email: response.data.email,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        isVerified: false
+      };
+      
+      localStorage.setItem('user', JSON.stringify(partialUserData));
       
       toast({
         title: "Registration successful",
@@ -19,7 +31,7 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
-      return response.data;
+      return partialUserData;
     } catch (error: any) {
       const apiError = error as ApiError;
       toast({
@@ -34,6 +46,10 @@ export const useAuthHelpers = () => {
   const login = async (email: string, password: string) => {
     try {
       const response = await AuthService.login(email, password);
+      
+      // Store both token and user data
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.data));
       
       toast({
         title: "Login successful",
@@ -54,7 +70,16 @@ export const useAuthHelpers = () => {
   };
   
   const logout = () => {
-    AuthService.logout();
+    // Clear local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Notify backend about logout (optional, depending on backend implementation)
+    try {
+      AuthService.logout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
     
     toast({
       title: "Logged out",
