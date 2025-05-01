@@ -16,7 +16,11 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:8080',
+  origin: [
+    'http://localhost:8080', 
+    'https://preview-a03ddab8--quantis-trade-front.lovable.app',
+    /\.lovable\.app$/  // Allow all subdomains of lovable.app
+  ],
   credentials: true
 }));
 

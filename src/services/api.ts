@@ -1,7 +1,10 @@
 
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+// Use the appropriate API URL based on environment
+const API_URL = import.meta.env.PROD 
+  ? 'https://preview-a03ddab8--quantis-trade-front.lovable.app:5000/api'  // Production URL
+  : 'http://localhost:5000/api'; // Development URL
 
 // Create axios instance
 const api = axios.create({
