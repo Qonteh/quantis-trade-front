@@ -19,9 +19,12 @@ app.use(cors({
   origin: [
     'http://localhost:8080', 
     'https://preview-a03ddab8--quantis-trade-front.lovable.app',
+    process.env.FRONTEND_URL,
     /\.lovable\.app$/  // Allow all subdomains of lovable.app
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Routes
@@ -44,4 +47,5 @@ const PORT = process.env.PORT || 5000;
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`CORS enabled for origins: ${process.env.FRONTEND_URL || 'https://preview-a03ddab8--quantis-trade-front.lovable.app'}`);
 });

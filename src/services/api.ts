@@ -3,15 +3,16 @@ import axios from 'axios';
 
 // Use the appropriate API URL based on environment
 const API_URL = import.meta.env.PROD 
-  ? 'https://preview-a03ddab8--quantis-trade-front.lovable.app:5000/api'  // Production URL
+  ? 'https://quantis-trade-back.herokuapp.com/api'  // Production URL (replace with your actual deployed backend URL)
   : 'http://localhost:5000/api'; // Development URL
 
-// Create axios instance
+// Create axios instance with timeout
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000, // 15 second timeout
 });
 
 // Add a request interceptor to inject the auth token
@@ -24,6 +25,26 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network Error: Unable to connect to the server.');
+      return Promise.reject({
+        response: {
+          data: {
+            error: 'Network Error: Unable to connect to the server. Please check your internet connection or try again later.'
+          }
+        }
+      });
+    }
+    
     return Promise.reject(error);
   }
 );
