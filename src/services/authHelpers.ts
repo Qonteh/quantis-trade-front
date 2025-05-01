@@ -20,7 +20,9 @@ export const useAuthHelpers = () => {
         email: response.data.email,
         firstName: response.data.firstName,
         lastName: response.data.lastName,
-        isVerified: false
+        isVerified: false,
+        countryCode: userData.countryCode || '',
+        phone: userData.phone || ''
       };
       
       localStorage.setItem('user', JSON.stringify(partialUserData));
@@ -30,6 +32,11 @@ export const useAuthHelpers = () => {
         description: "Please check your email for verification code",
         variant: "default",
       });
+      
+      // After registration, redirect to login page
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
       
       return partialUserData;
     } catch (error: any) {

@@ -48,10 +48,25 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any) => {
     setLoading(true);
     try {
-      const registeredUser = await authRegister(userData);
-      setUser(registeredUser);
+      const partialUserData = await authRegister(userData);
+      
+      // Create a complete User object with default values for missing properties
+      const completeUserData: User = {
+        id: partialUserData.id,
+        firstName: partialUserData.firstName,
+        lastName: partialUserData.lastName,
+        email: partialUserData.email,
+        isVerified: partialUserData.isVerified,
+        countryCode: userData.countryCode || '',
+        phone: userData.phone || '',
+        role: 'user',
+        walletBalance: 0,
+        demoBalance: 10000
+      };
+      
+      setUser(completeUserData);
       setLoading(false);
-      return registeredUser;
+      return completeUserData;
     } catch (error) {
       setLoading(false);
       throw error;
