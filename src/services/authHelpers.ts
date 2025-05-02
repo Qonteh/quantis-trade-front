@@ -33,8 +33,6 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
-      // Return the partial user data but don't redirect here
-      // The RegisterForm will handle redirection to verification page
       return partialUserData;
     } catch (error: any) {
       const apiError = error as ApiError;

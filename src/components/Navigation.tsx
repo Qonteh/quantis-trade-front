@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('English');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,12 +19,25 @@ const Navigation = () => {
       }
     };
 
+    // Get saved language from localStorage if available
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setCurrentLanguage(savedLanguage);
+    }
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setCurrentLanguage(language);
+    localStorage.setItem('language', language);
+    // Here you would typically call a function to change the app's language
+    // For now we'll just save it to localStorage
   };
 
   return (
@@ -77,24 +91,39 @@ const Navigation = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-white/95 backdrop-blur-md border border-gray-100 shadow-lg rounded-xl p-2 w-36">
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3">English</DropdownMenuItem>
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3">Español</DropdownMenuItem>
-              <DropdownMenuItem className="rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3">Français</DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3 ${currentLanguage === 'English' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('English')}
+              >
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3 ${currentLanguage === 'Español' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('Español')}
+              >
+                Español
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`rounded-lg cursor-pointer hover:bg-gray-50 py-2 px-3 ${currentLanguage === 'Français' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('Français')}
+              >
+                Français
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-        <a href="/register" className="font-medium text-[#7C3AED] hover:underline">
-                
-              <Button variant="ghost" className="text-gray-700 font-medium">
-            Log In
-          </Button></a>
+          <a href="/login" className="font-medium text-[#7C3AED] hover:underline">
+            <Button variant="ghost" className="text-gray-700 font-medium">
+              Log In
+            </Button>
+          </a>
           <a href="/register" className="font-medium text-[#7C3AED] hover:underline">
-               
-              <Button className="bg-quantis-purple hover:bg-quantis-secondary text-white font-medium">
-            Open Account
-          </Button></a>
+            <Button className="bg-quantis-purple hover:bg-quantis-secondary text-white font-medium">
+              Open Account
+            </Button>
+          </a>
         </div>
 
         {/* Mobile Menu Button */}
@@ -131,12 +160,36 @@ const Navigation = () => {
             <Link to="/about" className="text-gray-800 py-2 px-2 hover:bg-gray-50 rounded-md">About</Link>
             <Link to="/contact" className="text-gray-800 py-2 px-2 hover:bg-gray-50 rounded-md">Contact</Link>
             
+            <div className="flex flex-col space-y-1 pb-2">
+              <div className="text-sm font-semibold text-gray-500 px-2">Language</div>
+              <button 
+                className={`text-left text-gray-800 py-2 px-2 hover:bg-gray-50 rounded-md ${currentLanguage === 'English' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('English')}
+              >
+                English
+              </button>
+              <button 
+                className={`text-left text-gray-800 py-2 px-2 hover:bg-gray-50 rounded-md ${currentLanguage === 'Español' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('Español')}
+              >
+                Español
+              </button>
+              <button 
+                className={`text-left text-gray-800 py-2 px-2 hover:bg-gray-50 rounded-md ${currentLanguage === 'Français' ? 'bg-gray-50 font-medium' : ''}`}
+                onClick={() => handleLanguageChange('Français')}
+              >
+                Français
+              </button>
+            </div>
+            
             <hr className="border-gray-200" />
             
             <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="outline" className="w-full">Log In</Button>
-              <Button className="w-full bg-quantis-purple hover:bg-quantis-secondary text-white">
-                Open Account
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/login">Log In</Link>
+              </Button>
+              <Button className="w-full bg-quantis-purple hover:bg-quantis-secondary text-white" asChild>
+                <Link to="/register">Open Account</Link>
               </Button>
             </div>
           </div>
