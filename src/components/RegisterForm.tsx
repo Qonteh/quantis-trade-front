@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from "@/context/UserContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const registerSchema = z.object({
   firstName: z.string().min(2, {
@@ -20,6 +21,12 @@ const registerSchema = z.object({
   }),
   email: z.string().email({
     message: "Please enter a valid email address.",
+  }),
+  countryCode: z.string().min(1, {
+    message: "Country code is required.",
+  }),
+  phone: z.string().min(5, {
+    message: "Phone number must be at least 5 characters.",
   }),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
@@ -32,6 +39,30 @@ const registerSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
+
+// Common country codes
+const countryCodes = [
+  { value: "+1", label: "United States (+1)" },
+  { value: "+44", label: "United Kingdom (+44)" },
+  { value: "+33", label: "France (+33)" },
+  { value: "+49", label: "Germany (+49)" },
+  { value: "+61", label: "Australia (+61)" },
+  { value: "+86", label: "China (+86)" },
+  { value: "+91", label: "India (+91)" },
+  { value: "+234", label: "Nigeria (+234)" },
+  { value: "+27", label: "South Africa (+27)" },
+  { value: "+81", label: "Japan (+81)" },
+  { value: "+82", label: "South Korea (+82)" },
+  { value: "+55", label: "Brazil (+55)" },
+  { value: "+52", label: "Mexico (+52)" },
+  { value: "+7", label: "Russia (+7)" },
+  { value: "+39", label: "Italy (+39)" },
+  { value: "+34", label: "Spain (+34)" },
+  { value: "+31", label: "Netherlands (+31)" },
+  { value: "+90", label: "Turkey (+90)" },
+  { value: "+20", label: "Egypt (+20)" },
+  { value: "+966", label: "Saudi Arabia (+966)" },
+];
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -47,6 +78,8 @@ const RegisterForm = () => {
       firstName: "",
       lastName: "",
       email: "",
+      countryCode: "+1",
+      phone: "",
       password: "",
       confirmPassword: "",
       termsAndConditions: false,
@@ -62,6 +95,8 @@ const RegisterForm = () => {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
+        countryCode: values.countryCode,
+        phone: values.phone,
         password: values.password
       };
       
@@ -137,6 +172,53 @@ const RegisterForm = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Phone Number with Country Code */}
+              <div className="grid grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="countryCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">Country Code</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-10 text-sm">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[200px]">
+                          {countryCodes.map((country) => (
+                            <SelectItem key={country.value} value={country.value}>
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel className="text-sm font-medium">Phone Number</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="1234567890" 
+                          className="h-10 text-sm" 
+                          {...field}
+                          type="tel"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
