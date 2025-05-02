@@ -33,11 +33,8 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
-      // After registration, redirect to login page
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 2000);
-      
+      // Return the partial user data but don't redirect here
+      // The RegisterForm will handle redirection to verification page
       return partialUserData;
     } catch (error: any) {
       const apiError = error as ApiError;

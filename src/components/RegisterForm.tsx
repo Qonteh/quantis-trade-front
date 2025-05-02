@@ -71,6 +71,9 @@ const RegisterForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationError, setRegistrationError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("");
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -102,12 +105,73 @@ const RegisterForm = () => {
       
       await register(userData);
       
-      // Redirect to login page after successful registration
-      navigate("/login");
+      // Show loading animation
+      setIsLoading(true);
+      setStatusText("Creating your account...");
+      
+      // Simulate loading process
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            // Redirect to verification page after registration
+            navigate("/verification");
+            return 100;
+          }
+          
+          const newProgress = prev + 10;
+          
+          if (newProgress === 30) {
+            setStatusText("Setting up your profile...");
+          } else if (newProgress === 60) {
+            setStatusText("Almost there...");
+          } else if (newProgress >= 90) {
+            setStatusText("Preparing verification...");
+          }
+          
+          return newProgress;
+        });
+      }, 300);
     } catch (error: any) {
       setIsSubmitting(false);
       setRegistrationError(error.message || "Registration failed. Please try again.");
     }
+  }
+
+  // Show loading screen if isLoading is true
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full mx-auto text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex items-baseline">
+              <span className="text-[#7C3AED] font-bold text-3xl">Q</span>
+              <span className="text-black font-bold text-3xl">uantis</span>
+              <span className="text-[#7C3AED] font-bold text-xl translate-y-[-8px] ml-[1px]">
+                FX
+              </span>
+            </div>
+          </div>
+
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Setting Up Your Account</h1>
+          <p className="text-sm text-gray-600 mb-6">{statusText}</p>
+
+          <div className="relative pt-1 mb-6">
+            <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-gray-200">
+              <div
+                style={{ width: `${progress}%` }}
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#7C3AED] transition-all duration-300 ease-in-out"
+              ></div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-6 w-6 text-[#7C3AED] animate-spin mr-3" />
+            <span className="text-sm text-gray-700 font-medium">{Math.round(progress)}%</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
