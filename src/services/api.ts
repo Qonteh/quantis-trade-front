@@ -2,10 +2,10 @@
 import axios from 'axios';
 
 // Use the appropriate API URL based on environment
-// For XAMPP, we typically use http://localhost/your-project-folder/api
+// For Node.js backend, we typically use http://localhost:5000/api
 const API_URL = import.meta.env.PROD 
   ? 'https://quantis-trade-back.herokuapp.com/api'  // Production URL (replace with your actual deployed backend URL)
-  : 'http://localhost/quantisfx/api'; // Local XAMPP path - adjust the folder name if different
+  : 'http://localhost:5000/api'; // Local Node.js server path
 
 // Create axios instance with timeout
 const api = axios.create({
@@ -38,13 +38,12 @@ api.interceptors.response.use(
   error => {
     // Handle CORS errors
     if (error.message && error.message.includes('Network Error')) {
-      console.error('CORS or Network Error: Unable to connect to the server.');
-      console.error('Please ensure your XAMPP server is running and properly configured for CORS.');
-      console.error('Check that mod_headers is enabled in your Apache configuration.');
+      console.error('Network Error: Unable to connect to the server.');
+      console.error('Please ensure your Node.js server is running on port 5000.');
       return Promise.reject({
         response: {
           data: {
-            error: 'Network Error: Unable to connect to the server. Please check your XAMPP services are running and Apache is correctly configured for CORS.'
+            error: 'Network Error: Unable to connect to the server. Please check your Node.js server is running on port 5000.'
           }
         }
       });
@@ -56,7 +55,7 @@ api.interceptors.response.use(
       return Promise.reject({
         response: {
           data: {
-            error: 'Network Error: Unable to connect to the server. Please check your XAMPP services are running and Apache is started.'
+            error: 'Network Error: Unable to connect to the server. Please check your Node.js server is running.'
           }
         }
       });
