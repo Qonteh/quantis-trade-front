@@ -48,6 +48,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any) => {
     setLoading(true);
     try {
+      // Use the register function from authHelpers
+      // Note: authRegister now handles navigation to verification page
       const partialUserData = await authRegister(userData);
       
       // Create a complete User object with default values for missing properties
@@ -61,8 +63,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         countryCode: userData.countryCode || '',
         phone: userData.phone || '',
         role: 'user',
-        walletBalance: 0,
-        demoBalance: 0 // Zero balances for new users
+        walletBalance: 0, // Zero balances for new users
+        demoBalance: 10000 // Demo balance default
       };
       
       setUser(completeUserData);
@@ -77,6 +79,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Use the login function from authHelpers
+      // Note: authLogin now handles navigation to dashboard
       const loggedInUser = await authLogin(email, password);
       setUser(loggedInUser);
       setLoading(false);

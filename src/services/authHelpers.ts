@@ -3,9 +3,11 @@ import { AuthService } from './api';
 import { User } from '../types/user.types';
 import { useToast } from '@/hooks/use-toast';
 import { ApiError } from '@/types/api.types';
+import { useNavigate } from 'react-router-dom';
 
 export const useAuthHelpers = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const register = async (userData: any) => {
     try {
@@ -33,6 +35,9 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
+      // Navigate to verification page with state indicating we're coming from registration
+      navigate("/verify", { state: { fromRegistration: true } });
+      
       // Return the user data for redirection to verification
       return partialUserData;
     } catch (error: any) {
@@ -59,6 +64,9 @@ export const useAuthHelpers = () => {
         description: "Welcome back to Quantis FX",
         variant: "default",
       });
+      
+      // Redirect to dashboard
+      navigate("/dashboard");
       
       return response.data;
     } catch (error: any) {
@@ -91,7 +99,7 @@ export const useAuthHelpers = () => {
     });
     
     // Redirect to login page
-    window.location.href = '/login';
+    navigate('/login');
   };
   
   return { register, login, logout };
