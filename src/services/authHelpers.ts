@@ -33,6 +33,7 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
+      // Return the user data for redirection to verification
       return partialUserData;
     } catch (error: any) {
       const apiError = error as ApiError;
@@ -89,8 +90,8 @@ export const useAuthHelpers = () => {
       variant: "default",
     });
     
-    // Redirect to login page or home
-    window.location.href = '/';
+    // Redirect to login page
+    window.location.href = '/login';
   };
   
   return { register, login, logout };

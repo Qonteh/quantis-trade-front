@@ -62,7 +62,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: userData.phone || '',
         role: 'user',
         walletBalance: 0,
-        demoBalance: 0 // Changed from 10000 to 0 for new users
+        demoBalance: 0 // Zero balances for new users
       };
       
       setUser(completeUserData);
