@@ -43,7 +43,8 @@ const VerificationFlow = () => {
       await verifyEmail(user.id, verificationCode);
       setStatus("success");
       setTimeout(() => {
-        navigate("/dashboard");
+        // Redirect to login page instead of dashboard
+        navigate("/login");
       }, 2000);
     } catch (error: any) {
       setStatus("error");

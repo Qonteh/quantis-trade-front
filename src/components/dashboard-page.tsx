@@ -49,59 +49,23 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
-    // Fetch user data and update balances if authenticated
+    // Use real user data for balances
     if (isAuthenticated && user) {
-      // This would normally come from an API call, but for demo purposes, we'll create sample data
-      const sampleBalance = {
-        totalBalance: 10000.00 + Math.random() * 500,
-        availableBalance: 8500.00 + Math.random() * 300,
-        equity: 10200.00 + Math.random() * 500,
-        margin: 1500.00,
-        freeMargin: 8700.00,
-        marginLevel: 680,
-        profitLoss: 200.00 + Math.random() * 100 * (Math.random() > 0.5 ? 1 : -1),
+      // Use the actual user wallet data instead of hardcoded values
+      const userBalance = {
+        totalBalance: user.walletBalance || 0,
+        availableBalance: user.walletBalance || 0,
+        equity: user.walletBalance || 0,
+        margin: 0,
+        freeMargin: user.walletBalance || 0,
+        marginLevel: 0,
+        profitLoss: 0,
       };
       
-      setBalances(sampleBalance);
+      setBalances(userBalance);
       
-      // Sample trades - in a real app, these would come from an API
-      const sampleTrades: Trade[] = [
-        {
-          id: "T123456",
-          symbol: "EUR/USD",
-          type: "buy",
-          openPrice: 1.0876,
-          currentPrice: 1.0892,
-          size: 0.5,
-          openTime: "2025-04-28T14:32:00Z",
-          profitLoss: 8.00,
-          profitLossPercentage: 0.15,
-        },
-        {
-          id: "T123457",
-          symbol: "GBP/USD",
-          type: "sell",
-          openPrice: 1.2532,
-          currentPrice: 1.2502,
-          size: 0.3,
-          openTime: "2025-04-29T09:15:00Z",
-          profitLoss: 9.00,
-          profitLossPercentage: 0.24,
-        },
-        {
-          id: "T123458",
-          symbol: "BTC/USD",
-          type: "buy",
-          openPrice: 63500.00,
-          currentPrice: 63250.00,
-          size: 0.01,
-          openTime: "2025-04-29T12:45:00Z",
-          profitLoss: -2.50,
-          profitLossPercentage: -0.39,
-        },
-      ];
-      
-      setTrades(sampleTrades);
+      // Start with empty trades for new users
+      setTrades([]);
     }
     
     return () => {

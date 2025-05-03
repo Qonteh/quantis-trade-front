@@ -51,6 +51,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const partialUserData = await authRegister(userData);
       
       // Create a complete User object with default values for missing properties
+      // Set balances to zero for new users
       const completeUserData: User = {
         id: partialUserData.id,
         firstName: partialUserData.firstName,
@@ -61,7 +62,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: userData.phone || '',
         role: 'user',
         walletBalance: 0,
-        demoBalance: 10000
+        demoBalance: 0 // Changed from 10000 to 0 for new users
       };
       
       setUser(completeUserData);
