@@ -52,8 +52,8 @@ const App = () => (
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               
-              {/* Verification route */}
-              <Route path="/verification" element={<VerificationFlow />} />
+              {/* Verification route - fixed the path from "/verification" to "/verify" */}
+              <Route path="/verify" element={<VerificationFlow />} />
               
               {/* Protected routes */}
               <Route path="/dashboard" element={
