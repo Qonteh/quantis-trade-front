@@ -12,6 +12,9 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from "@/context/UserContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// Password validation pattern: 8-30 chars, at least 1 uppercase, 1 lowercase, and 1 special character
+const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,30}$/;
+
 const registerSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters.",
@@ -28,12 +31,15 @@ const registerSchema = z.object({
   phone: z.string().min(5, {
     message: "Phone number must be at least 5 characters.",
   }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+  password: z.string().refine(val => passwordPattern.test(val), {
+    message: "Password must be 8-30 characters with at least one uppercase letter, one lowercase letter, and one special character.",
   }),
   confirmPassword: z.string(),
   termsAndConditions: z.boolean().refine(val => val === true, {
     message: "You must accept the terms and conditions.",
+  }),
+  captcha: z.boolean().refine(val => val === true, {
+    message: "Please confirm you are not a robot.",
   })
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -251,6 +257,7 @@ const RegisterForm = () => {
       password: "",
       confirmPassword: "",
       termsAndConditions: false,
+      captcha: false,
     },
   });
 
@@ -279,8 +286,8 @@ const RegisterForm = () => {
         setProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval);
-            // Redirect to login page instead of verification page
-            navigate("/login");
+            // Redirect to verification page
+            navigate("/verification");
             return 100;
           }
           
@@ -291,7 +298,7 @@ const RegisterForm = () => {
           } else if (newProgress === 60) {
             setStatusText("Almost there...");
           } else if (newProgress >= 90) {
-            setStatusText("Preparing account...");
+            setStatusText("Preparing verification process...");
           }
           
           return newProgress;
@@ -343,6 +350,15 @@ const RegisterForm = () => {
     <div className="py-16 md:py-20 bg-gray-50 overflow-hidden min-h-screen">
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-8">
+          <div className="mb-6 flex justify-center">
+            <div className="flex items-baseline">
+              <span className="text-[#7C3AED] font-bold text-3xl">Q</span>
+              <span className="text-black font-bold text-3xl">uantis</span>
+              <span className="text-[#7C3AED] font-bold text-xl translate-y-[-8px] ml-[1px]">
+                FX
+              </span>
+            </div>
+          </div>
           <h2 className="text-2xl font-bold text-gray-900 font-display">Create Your Account</h2>
           <p className="mt-2 text-sm text-gray-600">
             Join Quantis FX and start trading on global markets
@@ -472,6 +488,9 @@ const RegisterForm = () => {
                         </button>
                       </div>
                     </FormControl>
+                    <p className="text-xs text-gray-500 mt-1">
+                      8-30 characters, one uppercase letter, one lowercase letter, and at least one special character.
+                    </p>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
@@ -528,6 +547,38 @@ const RegisterForm = () => {
                           Privacy Policy
                         </a>
                       </FormLabel>
+                      <FormMessage className="text-xs" />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {/* "I am not a robot" checkbox */}
+              <FormField
+                control={form.control}
+                name="captcha"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-2 space-y-0 mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+                      />
+                    </FormControl>
+                    <div className="flex flex-row justify-between w-full items-center">
+                      <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer">
+                        I am not a robot
+                      </FormLabel>
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-white border border-gray-200 rounded-sm flex items-center justify-center">
+                          <img 
+                            src="https://www.gstatic.com/recaptcha/api2/logo_48.png"
+                            alt="reCAPTCHA"
+                            className="w-5 h-5"
+                          />
+                        </div>
+                      </div>
                       <FormMessage className="text-xs" />
                     </div>
                   </FormItem>
