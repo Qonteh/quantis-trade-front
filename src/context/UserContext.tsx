@@ -64,7 +64,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: userData.phone || '',
         role: 'user',
         walletBalance: 0, // Zero balances for new users
-        demoBalance: 10000 // Demo balance default
+        demoBalance: 10000, // Demo balance default
+        leverage: '1:100', // Default leverage
+        accountType: 'Standard' // Default account type
       };
       
       setUser(completeUserData);
