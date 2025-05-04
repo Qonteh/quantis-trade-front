@@ -10,7 +10,13 @@ export interface User {
   role: string;
   walletBalance: number;
   demoBalance: number;
-  avatarUrl?: string; // Added avatarUrl as an optional property
+  avatarUrl?: string;
+  leverage: string;
+  accountType: string;
+  lastLogin?: Date;
+  joinDate?: string;
+  accountStatus?: 'active' | 'pending' | 'suspended';
+  tradingServer?: string;
 }
 
 export interface UserContextType {
