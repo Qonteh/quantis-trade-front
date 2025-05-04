@@ -41,18 +41,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      {/* BrowserRouter is now wrapping everything, including UserProvider */}
+      <BrowserRouter>
+        <UserProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               
-              {/* Verification route - fixed the path from "/verification" to "/verify" */}
+              {/* Verification route */}
               <Route path="/verify" element={<VerificationFlow />} />
               
               {/* Protected routes */}
@@ -100,9 +101,9 @@ const App = () => (
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </UserProvider>
+          </TooltipProvider>
+        </UserProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>
 );

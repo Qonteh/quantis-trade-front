@@ -3,11 +3,9 @@ import { AuthService } from './api';
 import { User } from '../types/user.types';
 import { useToast } from '@/hooks/use-toast';
 import { ApiError } from '@/types/api.types';
-import { useNavigate } from 'react-router-dom';
 
-export const useAuthHelpers = () => {
+export const useAuthHelpers = (navigate?: (path: string, options?: any) => void) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const register = async (userData: any) => {
     try {
@@ -35,8 +33,10 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
-      // Navigate to verification page with state indicating we're coming from registration
-      navigate("/verify", { state: { fromRegistration: true } });
+      // Navigate to verification page with state if navigate function is provided
+      if (navigate) {
+        navigate("/verify", { state: { fromRegistration: true } });
+      }
       
       // Return the user data for redirection to verification
       return partialUserData;
@@ -65,8 +65,10 @@ export const useAuthHelpers = () => {
         variant: "default",
       });
       
-      // Redirect to dashboard
-      navigate("/dashboard");
+      // Redirect to dashboard if navigate function is provided
+      if (navigate) {
+        navigate("/dashboard");
+      }
       
       return response.data;
     } catch (error: any) {
@@ -98,8 +100,10 @@ export const useAuthHelpers = () => {
       variant: "default",
     });
     
-    // Redirect to login page
-    navigate('/login');
+    // Redirect to login page if navigate function is provided
+    if (navigate) {
+      navigate('/login');
+    }
   };
   
   return { register, login, logout };

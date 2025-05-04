@@ -287,7 +287,7 @@ const RegisterForm = () => {
           if (prev >= 100) {
             clearInterval(interval);
             // Redirect to verification page
-            navigate("/verification");
+            navigate("/verify");
             return 100;
           }
           

@@ -11,7 +11,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
-  const { register: authRegister, login: authLogin, logout } = useAuthHelpers();
+  // We're now passing null as navigate to avoid the useNavigate error
+  const { register: authRegister, login: authLogin, logout } = useAuthHelpers(null);
   const { verifyEmail: verifyUserEmail, resendVerification, updateProfile: updateUserProfile } = useVerificationHelpers();
   
   useEffect(() => {
@@ -49,7 +50,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       // Use the register function from authHelpers
-      // Note: authRegister now handles navigation to verification page
       const partialUserData = await authRegister(userData);
       
       // Create a complete User object with default values for missing properties
@@ -80,7 +80,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       // Use the login function from authHelpers
-      // Note: authLogin now handles navigation to dashboard
       const loggedInUser = await authLogin(email, password);
       setUser(loggedInUser);
       setLoading(false);
@@ -140,6 +139,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Create a wrapper hook that properly gets the navigation context
 export const useAuth = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
