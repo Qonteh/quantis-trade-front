@@ -10,6 +10,7 @@ export interface User {
   role: string;
   walletBalance: number;
   demoBalance: number;
+  avatarUrl?: string; // Added avatarUrl as an optional property
 }
 
 export interface UserContextType {

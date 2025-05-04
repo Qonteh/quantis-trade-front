@@ -16,35 +16,35 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
   formatCurrency
 }) => {
   return (
-    <div className="grid grid-cols-3 gap-2 mt-4">
-      <div className="bg-[#f8f8ff] p-3 rounded-lg">
+    <div className="grid grid-cols-3 gap-2 mt-3">
+      <div className="bg-[#f8f8ff] p-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 dashboard-stats-card">
         <div className="flex items-center mb-1">
-          <div className="w-5 h-5 rounded-full bg-[#e1f5fe] flex items-center justify-center mr-1.5">
-            <Clock className="h-2.5 w-2.5 text-[#03a9f4]" />
+          <div className="w-4 h-4 rounded-full bg-[#e1f5fe] flex items-center justify-center mr-1.5">
+            <Clock className="h-2 w-2 text-[#03a9f4]" />
           </div>
-          <span className="text-[10px] text-gray-600">Total Equity</span>
+          <span className="text-[9px] text-gray-600 font-medium">Total Equity</span>
         </div>
-        <p className="font-bold text-sm">{formatCurrency(equity)}</p>
+        <p className="font-bold text-xs">{formatCurrency(equity)}</p>
       </div>
       
-      <div className="bg-[#f8f8ff] p-3 rounded-lg">
+      <div className="bg-[#f8f8ff] p-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 dashboard-stats-card">
         <div className="flex items-center mb-1">
-          <div className="w-5 h-5 rounded-full bg-[#ede7f6] flex items-center justify-center mr-1.5">
-            <CreditCard className="h-2.5 w-2.5 text-[#673ab7]" />
+          <div className="w-4 h-4 rounded-full bg-[#ede7f6] flex items-center justify-center mr-1.5">
+            <CreditCard className="h-2 w-2 text-[#673ab7]" />
           </div>
-          <span className="text-[10px] text-gray-600">Total Credit</span>
+          <span className="text-[9px] text-gray-600 font-medium">Total Credit</span>
         </div>
-        <p className="font-bold text-sm">{formatCurrency(credit)}</p>
+        <p className="font-bold text-xs">{formatCurrency(credit)}</p>
       </div>
       
-      <div className="bg-[#f8f8ff] p-3 rounded-lg">
+      <div className="bg-[#f8f8ff] p-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 dashboard-stats-card">
         <div className="flex items-center mb-1">
-          <div className="w-5 h-5 rounded-full bg-[#e3f2fd] flex items-center justify-center mr-1.5">
-            <Wallet className="h-2.5 w-2.5 text-[#2196f3]" />
+          <div className="w-4 h-4 rounded-full bg-[#e3f2fd] flex items-center justify-center mr-1.5">
+            <Wallet className="h-2 w-2 text-[#2196f3]" />
           </div>
-          <span className="text-[10px] text-gray-600">Total Deposit</span>
+          <span className="text-[9px] text-gray-600 font-medium">Total Deposit</span>
         </div>
-        <p className="font-bold text-sm">{formatCurrency(deposit)}</p>
+        <p className="font-bold text-xs">{formatCurrency(deposit)}</p>
       </div>
     </div>
   );
