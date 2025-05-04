@@ -137,12 +137,16 @@ const DashboardPage: React.FC = () => {
     }).format(amount);
   };
 
+  // Enhanced loading screen with branded colors
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="h-8 w-8 mx-auto animate-spin border-4 border-gray-200 border-t-[#7C3AED] rounded-full"></div>
-          <p className="mt-3 text-sm text-gray-600">Loading your dashboard...</p>
+          <div className="flex flex-col items-center justify-center">
+            <div className="h-16 w-16 mx-auto animate-spin border-4 border-gray-200 border-t-[#7C3AED] rounded-full"></div>
+            <p className="mt-4 text-lg font-medium text-[#7C3AED]">Loading your dashboard...</p>
+            <p className="mt-2 text-sm text-gray-500">Please wait while we prepare your trading environment</p>
+          </div>
         </div>
       </div>
     );
@@ -270,7 +274,6 @@ const DashboardPage: React.FC = () => {
                 <div>
                   <VerificationStatusPanel 
                     user={user}
-                    navigate={navigate}
                   />
                 </div>
               </div>

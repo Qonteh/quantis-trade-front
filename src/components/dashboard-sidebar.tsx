@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   CreditCard,
@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/UserContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from '@/components/ui/use-toast';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -53,7 +54,9 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { toast } = useToast();
 
   const menuItems = [
     { icon: <Home className="w-4 h-4" />, label: 'Dashboard', to: '/dashboard' },
@@ -73,6 +76,33 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+  
+  const handleLogout = () => {
+    // Show loading toast
+    toast({
+      title: "Logging out...",
+      description: "Please wait while we log you out.",
+    });
+    
+    // Simulate network delay for logout
+    setTimeout(() => {
+      // Call the logout function from useAuth
+      logout();
+      
+      // Navigate to login page
+      navigate('/login');
+      
+      // Show success toast
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out successfully.",
+      });
+    }, 800);
+  };
+  
+  const handleVerification = () => {
+    navigate('/verify');
   };
 
   // Mobile sidebar
@@ -131,6 +161,13 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: '35%' }}></div>
                 </div>
               </div>
+              <Button 
+                onClick={handleVerification}
+                className="w-full mt-2 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+                size="sm"
+              >
+                Complete Verification
+              </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto py-3 px-3">
@@ -152,7 +189,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-gray-300 hover:bg-[#3d2a87] hover:text-white"
-                onClick={() => logout()}
+                onClick={handleLogout}
               >
                 <LogOut className="mr-3 h-4 w-4" />
                 <span className="text-xs">Log out</span>
@@ -215,6 +252,13 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
               <div className="h-full bg-amber-500 rounded-full" style={{ width: '35%' }}></div>
             </div>
           </div>
+          <Button 
+            onClick={handleVerification}
+            className="w-full mt-2 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+            size="sm"
+          >
+            Complete Verification
+          </Button>
         </div>
       )}
 
@@ -237,7 +281,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
         <Button
           variant="ghost"
           className={`${isCollapsed ? 'p-2 w-auto' : 'w-full justify-start'} text-gray-300 hover:bg-[#3d2a87] hover:text-white`}
-          onClick={() => logout()}
+          onClick={handleLogout}
         >
           <LogOut className={`${isCollapsed ? '' : 'mr-3'} h-4 w-4`} />
           {!isCollapsed && <span className="text-xs">Log out</span>}

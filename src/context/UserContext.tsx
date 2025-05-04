@@ -4,6 +4,7 @@ import { AuthService } from '../services/api';
 import { useAuthHelpers } from '../services/authHelpers';
 import { useVerificationHelpers } from '../services/verificationHelpers';
 import { User, UserContextType } from '../types/user.types';
+import { useNavigate } from 'react-router-dom';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -12,7 +13,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   
   // We're now passing null as navigate to avoid the useNavigate error
-  const { register: authRegister, login: authLogin, logout } = useAuthHelpers(null);
+  const { register: authRegister, login: authLogin, logout: authLogout } = useAuthHelpers(null);
   const { verifyEmail: verifyUserEmail, resendVerification, updateProfile: updateUserProfile } = useVerificationHelpers();
   
   useEffect(() => {
@@ -92,6 +93,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
+  const logout = () => {
+    // Clear user data from state
+    setUser(null);
+    // Use AuthService to clear localStorage
+    AuthService.logout();
+    // Redirect is handled by the component using this function
+  };
+  
   const verifyEmail = async (userId: string, code: string) => {
     try {
       const response = await verifyUserEmail(userId, code);
@@ -141,7 +150,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// Create a wrapper hook that properly gets the navigation context
+// Create a wrapper hook that properly gets the context
 export const useAuth = () => {
   const context = useContext(UserContext);
   if (context === undefined) {

@@ -1,8 +1,13 @@
 
 import React, { useState } from 'react';
-import { ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Info, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AccountActionsMenu from './account-actions-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TradingAccount {
   accountId: string;
@@ -31,6 +36,9 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [transferAmount, setTransferAmount] = useState('');
+  const [platform, setPlatform] = useState('MT5');
+  const { toast } = useToast();
   
   const handleOpenPlatform = () => {
     setIsLoading(true);
@@ -39,6 +47,25 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
       setIsLoading(false);
       window.open('/platform', '_self');
     }, 1000);
+  };
+  
+  const handleTransfer = () => {
+    if (!transferAmount || parseFloat(transferAmount) <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid amount",
+        description: "Please enter a valid transfer amount"
+      });
+      return;
+    }
+
+    // Simulate transfer process
+    toast({
+      title: "Transfer initiated",
+      description: `${formatCurrency(parseFloat(transferAmount))} will be transferred to your ${platform} account shortly.`,
+    });
+    
+    setTransferAmount('');
   };
   
   return (
@@ -77,6 +104,52 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
           <div className="bg-gray-50 p-2 rounded-md">
             <p className="text-[10px] text-gray-500 mb-0.5">Margin</p>
             <p className="font-medium text-xs">{formatCurrency(account.margin)}</p>
+          </div>
+        </div>
+        
+        {/* Transfer Section */}
+        <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-medium">Transfer to Trading Platform</h4>
+          </div>
+          
+          <div className="flex space-x-2">
+            <div className="flex-1">
+              <div className="mb-1">
+                <Label htmlFor="transferAmount" className="text-[10px] text-gray-500">Amount</Label>
+                <Input 
+                  id="transferAmount" 
+                  type="number" 
+                  placeholder="0.00" 
+                  className="h-8 text-xs" 
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="w-24">
+              <div className="mb-1">
+                <Label htmlFor="platform" className="text-[10px] text-gray-500">Platform</Label>
+                <Select value={platform} onValueChange={setPlatform}>
+                  <SelectTrigger id="platform" className="w-full h-8 text-xs">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MT4">MT4</SelectItem>
+                    <SelectItem value="MT5">MT5</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                className="h-8 px-3 text-xs bg-[#7C3AED]" 
+                onClick={handleTransfer}
+              >
+                <ArrowRight className="h-3 w-3 mr-1" />
+                Transfer
+              </Button>
+            </div>
           </div>
         </div>
         

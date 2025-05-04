@@ -4,16 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Info, CheckCircle, Circle, ArrowRight } from 'lucide-react';
 import { User } from '@/types/user.types';
+import { useNavigate } from 'react-router-dom';
 
 interface VerificationStatusPanelProps {
   user: User | null;
-  navigate: (path: string) => void;
 }
 
 const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({ 
-  user,
-  navigate
+  user
 }) => {
+  const navigate = useNavigate();
   const [verificationStatus, setVerificationStatus] = useState({
     profile: user?.isVerified || false,
     document: false,
