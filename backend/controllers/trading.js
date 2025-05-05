@@ -1,4 +1,3 @@
-
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { sequelize } = require('../config/db');
@@ -301,6 +300,160 @@ exports.getAccountDetails = async (req, res, next) => {
         walletBalance: user.walletBalance,
         demoBalance: user.demoBalance
       }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get MT Server status
+// @route   GET /api/trading/mt-servers/status
+// @access  Private
+exports.getMTServerStatus = async (req, res, next) => {
+  try {
+    // In a production environment, you would check the actual status of your MT servers
+    // For now, we'll return mock data
+    const servers = [
+      { 
+        server: process.env.VITE_MT4_DEMO_SERVER, 
+        status: 'online', 
+        uptime: 99.98, 
+        message: 'All systems operational' 
+      },
+      { 
+        server: process.env.VITE_MT4_LIVE_SERVER, 
+        status: 'online', 
+        uptime: 99.95, 
+        message: 'All systems operational' 
+      },
+      { 
+        server: process.env.VITE_MT5_DEMO_SERVER, 
+        status: 'online', 
+        uptime: 99.99, 
+        message: 'All systems operational' 
+      },
+      { 
+        server: process.env.VITE_MT5_LIVE_SERVER, 
+        status: 'online', 
+        uptime: 99.97, 
+        message: 'All systems operational' 
+      }
+    ];
+
+    res.status(200).json({
+      success: true,
+      data: servers
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Create MT Account
+// @route   POST /api/trading/mt-accounts
+// @access  Private
+exports.createMTAccount = async (req, res, next) => {
+  try {
+    const { platform, accountType, leverage, initialDeposit } = req.body;
+
+    // Validate inputs
+    if (!platform || !accountType || !leverage || !initialDeposit) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide all required fields'
+      });
+    }
+
+    // In a real application, you would integrate with the MT server API
+    // For now, we'll create a mock MT account
+
+    const accountId = `MT${platform === 'MT5' ? '5' : '4'}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const password = `pass${Math.floor(10000 + Math.random() * 90000)}`;
+    const investorPassword = `inv${Math.floor(10000 + Math.random() * 90000)}`;
+    
+    const serverEnvKey = `VITE_${platform}_${accountType.toUpperCase()}_SERVER`;
+    const server = process.env[serverEnvKey] || 'demo.quantisfx.com';
+
+    // Create transaction record for the initial deposit
+    await Transaction.create({
+      userId: req.user.id,
+      type: 'mt_account_deposit',
+      amount: initialDeposit,
+      status: 'completed',
+      reference: `MT-DEP-${Date.now()}`,
+      metadata: JSON.stringify({ 
+        platform, 
+        accountType, 
+        accountId,
+        server,
+        leverage 
+      })
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        accountId,
+        password,
+        investorPassword,
+        server,
+        platform,
+        accountType,
+        leverage,
+        balance: initialDeposit,
+        equity: initialDeposit,
+        margin: 0,
+        freeMargin: initialDeposit,
+        createdAt: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get MT Accounts
+// @route   GET /api/trading/mt-accounts
+// @access  Private
+exports.getMTAccounts = async (req, res, next) => {
+  try {
+    // In a real application, you would fetch MT accounts from your database
+    // or from the MT server API
+    // For now, we'll return mock data
+
+    const mt4DemoAccount = {
+      accountId: `MT4-${Math.floor(100000 + Math.random() * 900000)}`,
+      server: process.env.VITE_MT4_DEMO_SERVER,
+      platform: 'MT4',
+      type: 'demo',
+      accountType: 'Standard',
+      balance: 10000,
+      equity: 10000,
+      margin: 0,
+      freeMargin: 10000,
+      leverage: '1:1000',
+      isActive: true,
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
+    };
+
+    const mt5LiveAccount = {
+      accountId: `MT5-${Math.floor(100000 + Math.random() * 900000)}`,
+      server: process.env.VITE_MT5_LIVE_SERVER,
+      platform: 'MT5',
+      type: 'live',
+      accountType: 'Premium',
+      balance: req.user.walletBalance || 5000,
+      equity: req.user.walletBalance || 5000,
+      margin: (req.user.walletBalance || 5000) * 0.05,
+      freeMargin: (req.user.walletBalance || 5000) * 0.95,
+      leverage: '1:500',
+      isActive: true,
+      createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() // 60 days ago
+    };
+
+    res.status(200).json({
+      success: true,
+      data: [mt4DemoAccount, mt5LiveAccount]
     });
   } catch (err) {
     next(err);
