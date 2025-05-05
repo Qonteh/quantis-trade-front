@@ -18,6 +18,20 @@ export interface User {
   joinDate?: string;
   accountStatus?: 'active' | 'pending' | 'suspended';
   tradingServer?: string;
+  mt4Accounts?: MTAccount[];
+  mt5Accounts?: MTAccount[];
+}
+
+export interface MTAccount {
+  accountId: string;
+  password?: string;
+  investorPassword?: string;
+  server: string;
+  type: string; // demo or live
+  balance: number;
+  leverage: string;
+  accountType: string;
+  isActive: boolean;
 }
 
 export interface UserContextType {
@@ -56,4 +70,11 @@ export interface AccountDetails {
   tradingServer: string;
   walletBalance: number;
   demoBalance: number;
+}
+
+export interface MTServerStatus {
+  server: string;
+  status: 'online' | 'offline' | 'maintenance';
+  uptime: number;
+  message?: string;
 }

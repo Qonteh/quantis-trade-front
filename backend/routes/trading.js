@@ -9,7 +9,10 @@ const {
   transfer,
   transferToPlatform,
   getTransactionHistory,
-  getAccountDetails
+  getAccountDetails,
+  getMTServerStatus,
+  createMTAccount,
+  getMTAccounts
 } = require('../controllers/trading');
 
 router.get('/balance', protect, getWalletBalance);
@@ -19,5 +22,10 @@ router.post('/transfer', protect, transfer);
 router.post('/platform-transfer', protect, transferToPlatform);
 router.get('/history', protect, getTransactionHistory);
 router.get('/account-details', protect, getAccountDetails);
+
+// MT Server related routes
+router.get('/mt-servers/status', protect, getMTServerStatus);
+router.post('/mt-accounts', protect, createMTAccount);
+router.get('/mt-accounts', protect, getMTAccounts);
 
 module.exports = router;
