@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import {
   Info, Clock, ArrowRight, AlertCircle, Wallet, DollarSign, CreditCard,
   Loader, RefreshCw, TrendingUp, TrendingDown, BarChart, Shield
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import DashboardHeader from "./dashboard/dashboard-header";
 import DashboardSidebar from "./dashboard-sidebar";
 import TradingAccountPanel from "./dashboard/trading-account-panel";
