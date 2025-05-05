@@ -94,3 +94,35 @@ exports.deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get user verification status
+// @route   GET /api/users/:id/verification
+// @access  Private
+exports.getUserVerificationStatus = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // In a real app, you would fetch document verification status from a separate table
+    // For now, we'll return a mock response
+    const verificationStatus = {
+      emailVerified: user.isVerified,
+      documentVerified: false, // This would come from your document verification service
+      percentage: user.isVerified ? 50 : 0
+    };
+
+    res.status(200).json({
+      success: true,
+      data: verificationStatus
+    });
+  } catch (err) {
+    next(err);
+  }
+};

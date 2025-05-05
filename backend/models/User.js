@@ -59,6 +59,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
+  isDocumentVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   verificationCode: {
     type: DataTypes.STRING
   },
@@ -72,6 +76,18 @@ const User = sequelize.define('User', {
   demoBalance: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 10000
+  },
+  leverage: {
+    type: DataTypes.STRING,
+    defaultValue: '1:2000'
+  },
+  accountType: {
+    type: DataTypes.STRING,
+    defaultValue: 'Standard'
+  },
+  tradingServer: {
+    type: DataTypes.STRING,
+    defaultValue: 'Quantis-Live'
   }
 }, {
   timestamps: true,

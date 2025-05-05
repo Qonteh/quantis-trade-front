@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExternalLink, Info, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AccountActionsMenu from './account-actions-menu';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { TradingService } from '@/services/api';
 
 interface TradingAccount {
   accountId: string;
@@ -50,7 +51,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
     }, 1000);
   };
   
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (!transferAmount || parseFloat(transferAmount) <= 0) {
       toast({
         variant: "destructive",
@@ -62,17 +63,27 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
     
     setIsTransferring(true);
 
-    // Simulate transfer process to MT4/MT5
-    setTimeout(() => {
-      setIsTransferring(false);
-      
+    try {
+      // In a real app, you'd call an API to transfer funds
+      // For now we'll simulate the API call with a timeout
+      setTimeout(() => {
+        setIsTransferring(false);
+        
+        toast({
+          title: `Transfer to ${platform} successful`,
+          description: `${formatCurrency(parseFloat(transferAmount))} has been transferred to your ${platform} ${isDemoAccount ? 'demo' : 'live'} account.`,
+        });
+        
+        setTransferAmount('');
+      }, 1500);
+    } catch (error) {
       toast({
-        title: `Transfer to ${platform} successful`,
-        description: `${formatCurrency(parseFloat(transferAmount))} has been transferred to your ${platform} ${isDemoAccount ? 'demo' : 'live'} account.`,
+        variant: "destructive",
+        title: "Transfer failed",
+        description: "There was an error processing your transfer. Please try again."
       });
-      
-      setTransferAmount('');
-    }, 1500);
+      setIsTransferring(false);
+    }
   };
   
   return (

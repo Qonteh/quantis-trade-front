@@ -207,6 +207,64 @@ exports.transfer = async (req, res, next) => {
   }
 };
 
+// @desc    Transfer funds to trading platform (MT4/MT5)
+// @route   POST /api/trading/platform-transfer
+// @access  Private
+exports.transferToPlatform = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const { amount, platform, accountType } = req.body;
+
+    if (!amount || amount <= 0 || !platform || !accountType) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Please provide valid amount, platform, and account type' 
+      });
+    }
+
+    const user = await User.findByPk(req.user.id, { transaction: t });
+
+    // Check if user has enough balance based on account type
+    const balanceField = accountType === 'demo' ? 'demoBalance' : 'walletBalance';
+    if (parseFloat(user[balanceField]) < parseFloat(amount)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Insufficient funds' 
+      });
+    }
+
+    // Update user balance
+    user[balanceField] = parseFloat(user[balanceField]) - parseFloat(amount);
+    await user.save({ transaction: t });
+    
+    // In a real application, you would send the funds to the trading platform
+    // For now, we'll just create a transaction record
+    await Transaction.create({
+      userId: user.id,
+      type: `platform_transfer_${accountType}`,
+      amount,
+      status: 'completed',
+      reference: `PTF-${platform}-${Date.now()}`,
+      metadata: JSON.stringify({ platform })
+    }, { transaction: t });
+
+    await t.commit();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        [balanceField]: user[balanceField],
+        transferAmount: amount,
+        platform
+      }
+    });
+  } catch (err) {
+    await t.rollback();
+    next(err);
+  }
+};
+
 // @desc    Get transaction history
 // @route   GET /api/trading/history
 // @access  Private

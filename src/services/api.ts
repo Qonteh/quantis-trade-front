@@ -122,8 +122,16 @@ export const TradingService = {
     const response = await api.post('/trading/transfer', { toEmail, amount });
     return response.data;
   },
+  transferToPlatform: async (amount: number, platform: string, accountType: 'live' | 'demo') => {
+    const response = await api.post('/trading/platform-transfer', { amount, platform, accountType });
+    return response.data;
+  },
   getTransactionHistory: async () => {
     const response = await api.get('/trading/history');
+    return response.data;
+  },
+  getVerificationStatus: async (userId: string) => {
+    const response = await api.get(`/users/${userId}/verification`);
     return response.data;
   }
 };

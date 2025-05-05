@@ -12,7 +12,14 @@ const Transaction = sequelize.define('Transaction', {
     }
   },
   type: {
-    type: DataTypes.ENUM('deposit', 'withdraw', 'transfer_in', 'transfer_out'),
+    type: DataTypes.ENUM(
+      'deposit', 
+      'withdraw', 
+      'transfer_in', 
+      'transfer_out', 
+      'platform_transfer_live', 
+      'platform_transfer_demo'
+    ),
     allowNull: false
   },
   amount: {
@@ -31,6 +38,16 @@ const Transaction = sequelize.define('Transaction', {
     references: {
       model: 'Users',
       key: 'id'
+    }
+  },
+  metadata: {
+    type: DataTypes.TEXT,
+    get() {
+      const value = this.getDataValue('metadata');
+      return value ? JSON.parse(value) : null;
+    },
+    set(value) {
+      this.setDataValue('metadata', value ? JSON.stringify(value) : null);
     }
   }
 }, {

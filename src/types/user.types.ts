@@ -7,6 +7,7 @@ export interface User {
   countryCode: string;
   phone: string;
   isVerified: boolean;
+  isDocumentVerified?: boolean;
   role: string;
   walletBalance: number;
   demoBalance: number;
