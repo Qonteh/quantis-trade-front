@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -13,7 +13,8 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/UserContext';
@@ -26,9 +27,10 @@ interface SidebarItemProps {
   to: string;
   isActive: boolean;
   isCollapsed: boolean;
+  onClick?: () => void;
 }
 
-const SidebarItem = ({ icon, label, to, isActive, isCollapsed }: SidebarItemProps) => {
+const SidebarItem = ({ icon, label, to, isActive, isCollapsed, onClick }: SidebarItemProps) => {
   return (
     <Link
       to={to}
@@ -39,6 +41,7 @@ const SidebarItem = ({ icon, label, to, isActive, isCollapsed }: SidebarItemProp
           ? 'bg-[#3d2a87] text-white'
           : 'text-gray-300 hover:bg-[#3d2a87]/50'
       }`}
+      onClick={onClick}
     >
       <div className="w-4 h-4">{icon}</div>
       {!isCollapsed && <span className="ml-3 text-xs font-medium">{label}</span>}
@@ -53,10 +56,18 @@ interface DashboardSidebarProps {
 const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toast } = useToast();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    if (isMobile && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [location.pathname]);
 
   const menuItems = [
     { icon: <Home className="w-4 h-4" />, label: 'Dashboard', to: '/dashboard' },
@@ -79,6 +90,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
   };
   
   const handleLogout = () => {
+    setIsLoggingOut(true);
     // Show loading toast
     toast({
       title: "Logging out...",
@@ -98,11 +110,31 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
         title: "Logged out successfully",
         description: "You have been logged out successfully.",
       });
+      
+      setIsLoggingOut(false);
     }, 800);
   };
   
   const handleVerification = () => {
+    // Show loading toast
+    toast({
+      title: "Redirecting to verification",
+      description: "Complete your profile verification to unlock all features.",
+    });
+    
+    // Navigate to verification page
     navigate('/verify');
+    
+    // Close mobile menu if open
+    if (isMobile && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
+  const handleMenuItemClick = () => {
+    if (isMobile) {
+      setIsMobileMenuOpen(false);
+    }
   };
 
   // Mobile sidebar
@@ -123,7 +155,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
         )}
 
         <aside
-          className={`fixed left-0 top-0 bottom-0 w-60 bg-[#2D1B69] shadow-lg z-50 transform transition-transform duration-300 ${
+          className={`fixed left-0 top-0 bottom-0 w-64 bg-[#2D1B69] shadow-lg z-50 transform transition-transform duration-300 ${
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -180,6 +212,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
                     to={item.to}
                     isActive={location.pathname === item.to}
                     isCollapsed={false}
+                    onClick={handleMenuItemClick}
                   />
                 ))}
               </nav>
@@ -190,9 +223,22 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
                 variant="ghost"
                 className="w-full justify-start text-gray-300 hover:bg-[#3d2a87] hover:text-white"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
               >
-                <LogOut className="mr-3 h-4 w-4" />
-                <span className="text-xs">Log out</span>
+                {isLoggingOut ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-xs">Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="mr-3 h-4 w-4" />
+                    <span className="text-xs">Log out</span>
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -205,7 +251,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
   return (
     <aside
       className={`hidden md:flex h-screen flex-col border-r bg-[#2D1B69] ${
-        isCollapsed ? 'w-16' : 'w-60'
+        isCollapsed ? 'w-16' : 'w-64'
       } transition-all duration-300 fixed left-0 top-0 z-10`}
     >
       <div className="flex items-center justify-between h-16 border-b border-[#3d2a87] px-4">
@@ -282,9 +328,22 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
           variant="ghost"
           className={`${isCollapsed ? 'p-2 w-auto' : 'w-full justify-start'} text-gray-300 hover:bg-[#3d2a87] hover:text-white`}
           onClick={handleLogout}
+          disabled={isLoggingOut}
         >
-          <LogOut className={`${isCollapsed ? '' : 'mr-3'} h-4 w-4`} />
-          {!isCollapsed && <span className="text-xs">Log out</span>}
+          {isLoggingOut ? (
+            <>
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {!isCollapsed && <span className="text-xs ml-3">Logging out...</span>}
+            </>
+          ) : (
+            <>
+              <LogOut className={`${isCollapsed ? '' : 'mr-3'} h-4 w-4`} />
+              {!isCollapsed && <span className="text-xs">Log out</span>}
+            </>
+          )}
         </Button>
       </div>
     </aside>

@@ -36,6 +36,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
   const [transferAmount, setTransferAmount] = useState('');
   const [platform, setPlatform] = useState('MT5');
   const { toast } = useToast();
@@ -58,14 +59,20 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
       });
       return;
     }
-
-    // Simulate transfer process
-    toast({
-      title: "Transfer initiated",
-      description: `${formatCurrency(parseFloat(transferAmount))} will be transferred to your ${platform} account shortly.`,
-    });
     
-    setTransferAmount('');
+    setIsTransferring(true);
+
+    // Simulate transfer process to MT4/MT5
+    setTimeout(() => {
+      setIsTransferring(false);
+      
+      toast({
+        title: `Transfer to ${platform} successful`,
+        description: `${formatCurrency(parseFloat(transferAmount))} has been transferred to your ${platform} ${isDemoAccount ? 'demo' : 'live'} account.`,
+      });
+      
+      setTransferAmount('');
+    }, 1500);
   };
   
   return (
@@ -91,7 +98,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
         <div className="grid grid-cols-4 gap-2">
           <div className="bg-gray-50 p-2 rounded-md">
             <p className="text-[10px] text-gray-500 mb-0.5">Leverage</p>
-            <p className="font-medium text-xs">{account.leverage}</p>
+            <p className="font-medium text-xs">1:2000</p>
           </div>
           <div className="bg-gray-50 p-2 rounded-md">
             <p className="text-[10px] text-gray-500 mb-0.5">Equity</p>
@@ -124,6 +131,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
                   className="h-8 text-xs" 
                   value={transferAmount}
                   onChange={(e) => setTransferAmount(e.target.value)}
+                  disabled={isTransferring}
                 />
               </div>
             </div>
@@ -131,7 +139,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
               <div className="mb-1">
                 <Label htmlFor="platform" className="text-[10px] text-gray-500">Platform</Label>
                 <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger id="platform" className="w-full h-8 text-xs">
+                  <SelectTrigger id="platform" className="w-full h-8 text-xs" disabled={isTransferring}>
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -145,9 +153,22 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
               <Button 
                 className="h-8 px-3 text-xs bg-[#7C3AED]" 
                 onClick={handleTransfer}
+                disabled={isTransferring}
               >
-                <ArrowRight className="h-3 w-3 mr-1" />
-                Transfer
+                {isTransferring ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight className="h-3 w-3 mr-1" />
+                    Transfer
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -160,6 +181,7 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
                 <Info 
                   className="h-3 w-3 mr-1 cursor-pointer text-blue-500" 
                   onClick={() => setShowDetails(!showDetails)} 
+                  aria-label="Show account details"
                 />
                 {account.server}
               </span>
@@ -168,18 +190,33 @@ const TradingAccountPanel: React.FC<TradingAccountPanelProps> = ({
         </div>
         
         {showDetails && (
-          <div className="mt-2 p-2 bg-gray-50 rounded-md text-[10px] space-y-1 animate-fade-in">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Platform:</span>
-              <span>{account.platform}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Currency:</span>
-              <span>{account.currency}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Open Date:</span>
-              <span>{account.openDate}</span>
+          <div className="mt-2 p-3 bg-gray-50 rounded-md text-xs space-y-2 animate-fade-in border border-gray-100">
+            <h5 className="font-medium text-xs text-gray-700 border-b border-gray-200 pb-1 mb-2">Account Details</h5>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Platform:</span>
+                <span className="font-medium">{account.platform}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Account Type:</span>
+                <span className="font-medium">{account.type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Currency:</span>
+                <span className="font-medium">{account.currency}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Open Date:</span>
+                <span className="font-medium">{account.openDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Leverage:</span>
+                <span className="font-medium">1:2000</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Server:</span>
+                <span className="font-medium">{account.server}</span>
+              </div>
             </div>
           </div>
         )}

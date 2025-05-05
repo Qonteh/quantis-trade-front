@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Info, CheckCircle, Circle, ArrowRight } from 'lucide-react';
 import { User } from '@/types/user.types';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 interface VerificationStatusPanelProps {
   user: User | null;
@@ -14,6 +15,8 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
   user
 }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isNavigating, setIsNavigating] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState({
     profile: user?.isVerified || false,
     document: false,
@@ -21,11 +24,27 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
   });
 
   const handleCompleteVerification = () => {
-    navigate('/verify');
+    setIsNavigating(true);
+    // Show loading toast
+    toast({
+      title: "Redirecting to verification",
+      description: "Please complete your identity verification to unlock all features.",
+    });
+    
+    // Simulate loading before redirecting
+    setTimeout(() => {
+      navigate('/verify');
+      setIsNavigating(false);
+    }, 500);
   };
 
   const handleDeposit = () => {
-    navigate('/deposit');
+    setIsNavigating(true);
+    // Simulate loading before redirecting
+    setTimeout(() => {
+      navigate('/deposit');
+      setIsNavigating(false);
+    }, 500);
   };
 
   return (
@@ -49,7 +68,7 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
             </div>
             <div className="h-1.5 bg-gray-200 rounded-full">
               <div 
-                className="h-1.5 bg-amber-400 rounded-full" 
+                className="h-1.5 bg-amber-400 rounded-full transition-all duration-500" 
                 style={{ width: `${verificationStatus.percentage}%` }}
               ></div>
             </div>
@@ -88,8 +107,19 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
           <Button 
             onClick={handleCompleteVerification}
             className="w-full text-xs bg-amber-500 hover:bg-amber-600 text-white h-8"
+            disabled={isNavigating}
           >
-            Complete Verification
+            {isNavigating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Redirecting...
+              </>
+            ) : (
+              "Complete Verification"
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -110,8 +140,19 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
           <Button 
             onClick={handleDeposit}
             className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs h-8"
+            disabled={isNavigating}
           >
-            Deposit Now
+            {isNavigating ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Redirecting...
+              </>
+            ) : (
+              "Deposit Now"
+            )}
           </Button>
         </CardContent>
       </Card>
