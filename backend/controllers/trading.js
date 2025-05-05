@@ -246,7 +246,7 @@ exports.transferToPlatform = async (req, res, next) => {
       amount,
       status: 'completed',
       reference: `PTF-${platform}-${Date.now()}`,
-      metadata: JSON.stringify({ platform })
+      metadata: JSON.stringify({ platform, leverage: '1:2000' })
     }, { transaction: t });
 
     await t.commit();
@@ -256,7 +256,8 @@ exports.transferToPlatform = async (req, res, next) => {
       data: {
         [balanceField]: user[balanceField],
         transferAmount: amount,
-        platform
+        platform,
+        leverage: '1:2000'
       }
     });
   } catch (err) {
@@ -278,6 +279,28 @@ exports.getTransactionHistory = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: transactions
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get user trading account details
+// @route   GET /api/trading/account-details
+// @access  Private
+exports.getAccountDetails = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        leverage: user.leverage || '1:2000',
+        accountType: user.accountType || 'Standard',
+        tradingServer: user.tradingServer || 'Quantis-Live',
+        walletBalance: user.walletBalance,
+        demoBalance: user.demoBalance
+      }
     });
   } catch (err) {
     next(err);

@@ -88,6 +88,12 @@ const User = sequelize.define('User', {
   tradingServer: {
     type: DataTypes.STRING,
     defaultValue: 'Quantis-Live'
+  },
+  avatarUrl: {
+    type: DataTypes.STRING
+  },
+  lastLogin: {
+    type: DataTypes.DATE
   }
 }, {
   timestamps: true,

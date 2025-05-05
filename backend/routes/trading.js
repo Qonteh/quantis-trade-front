@@ -8,7 +8,8 @@ const {
   withdraw,
   transfer,
   transferToPlatform,
-  getTransactionHistory
+  getTransactionHistory,
+  getAccountDetails
 } = require('../controllers/trading');
 
 router.get('/balance', protect, getWalletBalance);
@@ -17,5 +18,6 @@ router.post('/withdraw', protect, withdraw);
 router.post('/transfer', protect, transfer);
 router.post('/platform-transfer', protect, transferToPlatform);
 router.get('/history', protect, getTransactionHistory);
+router.get('/account-details', protect, getAccountDetails);
 
 module.exports = router;

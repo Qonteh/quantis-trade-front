@@ -31,3 +31,29 @@ export interface UserContextType {
   resendVerification: (email: string) => Promise<any>;
   updateProfile: (userData: any) => Promise<any>;
 }
+
+export interface WalletBalance {
+  walletBalance: number;
+  demoBalance: number;
+}
+
+export interface Transaction {
+  id: number;
+  userId: number;
+  type: string;
+  amount: number;
+  status: string;
+  reference: string;
+  createdAt: string;
+  updatedAt: string;
+  relatedUserId?: number;
+  metadata?: string;
+}
+
+export interface AccountDetails {
+  leverage: string;
+  accountType: string;
+  tradingServer: string;
+  walletBalance: number;
+  demoBalance: number;
+}

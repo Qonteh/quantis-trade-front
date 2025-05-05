@@ -130,6 +130,10 @@ export const TradingService = {
     const response = await api.get('/trading/history');
     return response.data;
   },
+  getAccountDetails: async () => {
+    const response = await api.get('/trading/account-details');
+    return response.data;
+  },
   getVerificationStatus: async (userId: string) => {
     const response = await api.get(`/users/${userId}/verification`);
     return response.data;
