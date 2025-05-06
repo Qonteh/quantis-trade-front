@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/UserContext";
 import { 
   ArrowUpRight, ArrowDownRight, Info, Clock, ArrowRight, AlertCircle, Wallet, 
-  Loader, RefreshCw, TrendingUp, TrendingDown, BarChart, Shield
+  Loader, RefreshCw, TrendingUp, TrendingDown, BarChart, Shield, CheckCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import DashboardHeader from "./dashboard/dashboard-header";
