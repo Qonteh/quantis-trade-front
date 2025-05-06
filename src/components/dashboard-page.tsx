@@ -89,20 +89,42 @@ const DashboardPage: React.FC = () => {
         }
       }
       
-      // Set static account data to prevent UI issues
-      setLiveAccount(prev => ({
-        ...prev,
-        equity: user?.walletBalance || 5000,
-        balance: user?.walletBalance || 5000,
-        margin: (user?.walletBalance || 5000) * 0.1
-      }));
-      
-      setDemoAccount(prev => ({
-        ...prev,
-        equity: user?.demoBalance || 10000,
-        balance: user?.demoBalance || 10000,
-        margin: (user?.demoBalance || 10000) * 0.05
-      }));
+      // Get account balance from backend
+      try {
+        const balanceResponse = await TradingService.getBalance();
+        if (balanceResponse.data) {
+          // Update real account data
+          setLiveAccount(prev => ({
+            ...prev,
+            equity: balanceResponse.data.walletBalance || user?.walletBalance || 0,
+            balance: balanceResponse.data.walletBalance || user?.walletBalance || 0,
+            margin: (balanceResponse.data.walletBalance || user?.walletBalance || 0) * 0.1
+          }));
+          
+          setDemoAccount(prev => ({
+            ...prev,
+            equity: balanceResponse.data.demoBalance || user?.demoBalance || 0,
+            balance: balanceResponse.data.demoBalance || user?.demoBalance || 0,
+            margin: (balanceResponse.data.demoBalance || user?.demoBalance || 0) * 0.05
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+        // Fallback to user context if API call fails
+        setLiveAccount(prev => ({
+          ...prev,
+          equity: user?.walletBalance || 0,
+          balance: user?.walletBalance || 0,
+          margin: (user?.walletBalance || 0) * 0.1
+        }));
+        
+        setDemoAccount(prev => ({
+          ...prev,
+          equity: user?.demoBalance || 0,
+          balance: user?.demoBalance || 0,
+          margin: (user?.demoBalance || 0) * 0.05
+        }));
+      }
       
       // Finish loading after a slight delay to ensure UI is stable
       setTimeout(() => {
@@ -146,15 +168,21 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
-    // Only fetch data once 
-    if (isAuthenticated && user && !isServerChecked) {
+    // Only fetch data once to prevent refresh loops
+    if (isAuthenticated && user && !isLoading) {
       fetchAccountData(true);
     }
     
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [isAuthenticated, loading, user, navigate, fetchAccountData, isServerChecked]);
+  }, [isAuthenticated, loading, user, navigate, fetchAccountData]);
+  
+  // Fix for tab change handling to ensure it's working properly
+  const handleTabChange = (value: string) => {
+    console.log("Tab changed to:", value);
+    setCurrentTab(value);
+  };
 
   const handleDeposit = () => {
     navigate("/deposit");
@@ -179,11 +207,6 @@ const DashboardPage: React.FC = () => {
       title: "Data refreshed",
       description: "Your account information has been updated."
     });
-  };
-
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setCurrentTab(value);
   };
 
   // Enhanced loading screen with branded colors
@@ -391,24 +414,24 @@ const DashboardPage: React.FC = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Trading Account Tabs - FIXED THE NAVIGATION ISSUE */}
-                  <div>
+                  {/* Trading Account Tabs - Fixed navigation issue */}
+                  <div className="relative z-10">
                     <Tabs 
                       defaultValue="live"
                       value={currentTab} 
                       onValueChange={handleTabChange} 
                       className="w-full"
                     >
-                      <TabsList className="w-full grid grid-cols-2 h-auto p-0 bg-gray-100 rounded-md mb-2">
+                      <TabsList className="w-full grid grid-cols-2 h-auto p-0 bg-gray-100 rounded-md mb-2 overflow-visible">
                         <TabsTrigger 
                           value="live" 
-                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7C3AED] data-[state=active]:to-[#6D28D9] data-[state=active]:text-white text-xs py-2 rounded-l-md"
+                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7C3AED] data-[state=active]:to-[#6D28D9] data-[state=active]:text-white text-xs py-2 rounded-l-md relative z-20"
                         >
                           Live Trading Account
                         </TabsTrigger>
                         <TabsTrigger 
                           value="demo" 
-                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7C3AED] data-[state=active]:to-[#6D28D9] data-[state=active]:text-white text-xs py-2 rounded-r-md"
+                          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7C3AED] data-[state=active]:to-[#6D28D9] data-[state=active]:text-white text-xs py-2 rounded-r-md relative z-20"
                         >
                           Demo Trading Account
                         </TabsTrigger>

@@ -1,357 +1,600 @@
-"use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Copy, Share2, Gift, Award, ChevronRight, Mail, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/UserContext";
+import { 
+  Share, Copy, CheckCircle, Gift, Users, Loader, 
+  TrendingUp, RefreshCw, BarChart2, UserPlus
+} from "lucide-react";
+import DashboardHeader from "./dashboard/dashboard-header";
+import DashboardSidebar from "./dashboard-sidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { TradingService } from "@/services/api";
+import { 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
-export default function ReferPage() {
-  const [copied, setCopied] = useState(false)
+interface ReferralData {
+  code: string;
+  url: string;
+  totalReferrals: number;
+  activeReferrals: number;
+  pendingReferrals: number;
+  earnings: number;
+  commission: string;
+  referralStats: {
+    month: string;
+    referrals: number;
+    earnings: number;
+  }[];
+  referrals: {
+    id: number;
+    email: string;
+    status: string;
+    date: string;
+    earnings: number;
+  }[];
+}
 
-  // Sample referral data
-  const referralCode = "JOHN25"
-  const referralLink = "https://quantisfx.com/register?ref=JOHN25"
+// Mock data generator function
+const getMockReferralData = (userId: string): ReferralData => {
+  const userIdHash = userId ? userId.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : 12345;
+  const referralCode = `REF${userIdHash}`;
+  
+  const mockMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const mockReferralStats = mockMonths.map((month, i) => {
+    const base = (i + 1) * 2;
+    return {
+      month,
+      referrals: base,
+      earnings: base * 50
+    };
+  });
+  
+  const mockReferrals = Array.from({length: 5}, (_, i) => {
+    const statusOptions = ['active', 'pending', 'active', 'active', 'expired'];
+    return {
+      id: 1000 + i,
+      email: `user${i + 1}@example.com`,
+      status: statusOptions[i],
+      date: new Date(Date.now() - (i * 15 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+      earnings: (i + 1) * 25
+    };
+  });
+  
+  return {
+    code: referralCode,
+    url: `https://${import.meta.env.VITE_BROKER_NAME || 'quantisfx'}.com/register?ref=${referralCode}`,
+    totalReferrals: mockReferrals.length,
+    activeReferrals: mockReferrals.filter(r => r.status === 'active').length,
+    pendingReferrals: mockReferrals.filter(r => r.status === 'pending').length,
+    earnings: mockReferrals.reduce((sum, r) => sum + r.earnings, 0),
+    commission: "20%",
+    referralStats: mockReferralStats,
+    referrals: mockReferrals
+  };
+};
 
-  const referralStats = {
-    totalReferrals: 5,
-    pendingReferrals: 2,
-    completedReferrals: 3,
-    totalEarnings: 150.0,
-    pendingEarnings: 100.0,
-  }
+const ReferPage: React.FC = () => {
+  const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isLoading, setIsLoading] = useState(true);
+  const [referralData, setReferralData] = useState<ReferralData | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-  const referralHistory = [
-    {
-      id: 1,
-      name: "Alex Smith",
-      email: "alex.s@example.com",
-      status: "Completed",
-      date: "2025-04-15T14:30:00",
-      reward: 50.0,
-    },
-    {
-      id: 2,
-      name: "Maria Johnson",
-      email: "maria.j@example.com",
-      status: "Completed",
-      date: "2025-04-10T10:15:00",
-      reward: 50.0,
-    },
-    {
-      id: 3,
-      name: "James Wilson",
-      email: "james.w@example.com",
-      status: "Completed",
-      date: "2025-04-05T16:45:00",
-      reward: 50.0,
-    },
-    {
-      id: 4,
-      name: "Sarah Brown",
-      email: "sarah.b@example.com",
-      status: "Pending",
-      date: "2025-04-20T09:30:00",
-      reward: 50.0,
-    },
-    {
-      id: 5,
-      name: "Robert Davis",
-      email: "robert.d@example.com",
-      status: "Pending",
-      date: "2025-04-22T11:20:00",
-      reward: 50.0,
-    },
-  ]
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value)
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(date)
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const shareReferral = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "Join Quantis FX",
-        text: "Sign up for Quantis FX using my referral code and get a bonus!",
-        url: referralLink,
-      })
+    window.addEventListener('resize', handleResize);
+    fetchReferralData();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
+  const fetchReferralData = async () => {
+    setIsLoading(true);
+    
+    try {
+      // In a real implementation, fetch from API
+      // const response = await TradingService.getReferralData();
+      // setReferralData(response.data);
+      
+      // Using mock data for now
+      setTimeout(() => {
+        setReferralData(getMockReferralData(user?.id.toString() || ''));
+        setIsLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error fetching referral data:", error);
+      setIsLoading(false);
+      
+      // Fallback to mock data on error
+      setReferralData(getMockReferralData(user?.id.toString() || ''));
     }
-  }
-
-  const handleNavigation = (path: string) => {
-    window.location.href = path
-  }
+  };
+  
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopySuccess(true);
+        toast({
+          title: "Copied!",
+          description: message,
+        });
+        
+        setTimeout(() => {
+          setCopySuccess(false);
+        }, 3000);
+      },
+      (err) => {
+        console.error('Failed to copy text: ', err);
+        toast({
+          title: "Copy failed",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      }
+    );
+  };
+  
+  const handleShareReferral = async () => {
+    if (!referralData) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join ${import.meta.env.VITE_BROKER_NAME || 'Quantis'} Trading`,
+          text: `Sign up for ${import.meta.env.VITE_BROKER_NAME || 'Quantis'} using my referral link and get a bonus!`,
+          url: referralData.url
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+        copyToClipboard(referralData.url, "Referral link copied to clipboard!");
+      }
+    } else {
+      copyToClipboard(referralData.url, "Referral link copied to clipboard!");
+    }
+  };
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-        <div className="flex items-center mb-4 md:mb-0">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#9D6FFF]/20 to-[#7C3AED]/20 flex items-center justify-center mr-3">
-            <Users className="h-5 w-5 text-[#7C3AED]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Refer Friends</h1>
-            <p className="text-sm text-gray-500">Invite friends and earn rewards</p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          className="border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5 h-9 text-sm rounded-lg"
-          onClick={() => handleNavigation("/dashboard")}
-        >
-          Back to Dashboard
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        <DashboardSidebar isMobile={isMobile} />
+        
+        <div className={`flex-1 ${!isMobile ? 'md:ml-64' : ''}`}>
+          {/* Header */}
+          <DashboardHeader
+            marketData={[
+              { pair: "EUR/USD", price: "1.0873", change: "-0.01%" },
+              { pair: "GBP/USD", price: "1.2543", change: "-0.02%" },
+              { pair: "USD/JPY", price: "153.6569", change: "+0.01%" },
+              { pair: "BTC/USD", price: "63,154.43", change: "-0.03%" },
+            ]}
+            isMobile={isMobile}
+          />
 
-      {/* Referral Program Overview */}
-      <Card className="border-none shadow-sm mb-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/5 via-[#7C3AED]/2 to-transparent rounded-xl"></div>
-        <CardHeader className="relative z-10 p-4">
-          <CardTitle className="text-lg">Referral Program</CardTitle>
-          <CardDescription>Earn $50 for each friend who joins and deposits</CardDescription>
-        </CardHeader>
-        <CardContent className="relative z-10 p-4 pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="bg-white p-4 rounded-lg border border-gray-100 mb-4">
-                <p className="text-sm font-medium mb-2">Your Referral Code</p>
-                <div className="flex items-center">
-                  <Input value={referralCode} readOnly className="bg-gray-50 border-gray-200" />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="ml-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5"
-                    onClick={() => copyToClipboard(referralCode)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                {copied && <p className="text-xs text-green-600 mt-1">Copied to clipboard!</p>}
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-100">
-                <p className="text-sm font-medium mb-2">Your Referral Link</p>
-                <div className="flex items-center">
-                  <Input value={referralLink} readOnly className="bg-gray-50 border-gray-200 text-xs" />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="ml-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5"
-                    onClick={() => copyToClipboard(referralLink)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex space-x-2 mt-4">
-                <Button
-                  className="flex-1 bg-[#7C3AED] hover:bg-[#6D28D9] h-9 text-sm rounded-lg"
-                  onClick={shareReferral}
-                >
-                  <Share2 className="mr-1.5 h-4 w-4" />
-                  Share
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5 h-9 text-sm rounded-lg"
-                >
-                  <Mail className="mr-1.5 h-4 w-4" />
-                  Email Invite
-                </Button>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border border-gray-100">
-              <h3 className="text-sm font-medium mb-3">How It Works</h3>
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <div className="h-6 w-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mr-2 mt-0.5">
-                    <span className="text-xs font-medium text-[#7C3AED]">1</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Share your unique referral code or link with friends</p>
-                </div>
-                <div className="flex items-start">
-                  <div className="h-6 w-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mr-2 mt-0.5">
-                    <span className="text-xs font-medium text-[#7C3AED]">2</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Your friend signs up and makes a qualifying deposit of $500 or more
-                  </p>
-                </div>
-                <div className="flex items-start">
-                  <div className="h-6 w-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mr-2 mt-0.5">
-                    <span className="text-xs font-medium text-[#7C3AED]">3</span>
-                  </div>
-                  <p className="text-sm text-gray-600">You both receive a $50 bonus credited to your accounts</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Referral Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="border-none shadow-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/5 via-[#7C3AED]/2 to-transparent rounded-xl"></div>
-          <CardHeader className="relative z-10 p-4 pb-2">
-            <CardTitle className="text-sm text-gray-700">Total Earnings</CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10 p-4 pt-0">
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center mr-3">
-                <Gift className="h-5 w-5 text-green-600" />
-              </div>
+          {/* Page Title */}
+          <div className="bg-white py-3 px-4 md:px-6 border-b">
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
               <div>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(referralStats.totalEarnings)}</p>
-                <p className="text-xs text-gray-500 mt-1">Lifetime earnings</p>
+                <h2 className="text-sm font-medium">Referral Program</h2>
+                <p className="text-xs text-gray-500">Invite friends and earn rewards</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-blue-500/2 to-transparent rounded-xl"></div>
-          <CardHeader className="relative z-10 p-4 pb-2">
-            <CardTitle className="text-sm text-gray-700">Total Referrals</CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10 p-4 pt-0">
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mr-3">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{referralStats.totalReferrals}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {referralStats.completedReferrals} completed, {referralStats.pendingReferrals} pending
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-amber-500/2 to-transparent rounded-xl"></div>
-          <CardHeader className="relative z-10 p-4 pb-2">
-            <CardTitle className="text-sm text-gray-700">Pending Earnings</CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10 p-4 pt-0">
-            <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center mr-3">
-                <Award className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(referralStats.pendingEarnings)}</p>
-                <p className="text-xs text-gray-500 mt-1">Awaiting completion</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Referral History */}
-      <Card className="border-none shadow-sm mb-6">
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 via-gray-50/50 to-transparent rounded-xl"></div>
-        <CardHeader className="relative z-10 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Referral History</CardTitle>
-              <CardDescription>Your referred friends</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="relative z-10 p-4 pt-0">
-          <div className="rounded-lg overflow-hidden border border-gray-100">
-            <Table>
-              <TableHeader className="bg-gray-50">
-                <TableRow>
-                  <TableHead className="text-xs font-medium py-2">Name</TableHead>
-                  <TableHead className="text-xs font-medium py-2">Email</TableHead>
-                  <TableHead className="text-xs font-medium py-2">Date</TableHead>
-                  <TableHead className="text-xs font-medium py-2">Status</TableHead>
-                  <TableHead className="text-xs font-medium py-2 text-right">Reward</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {referralHistory.map((referral) => (
-                  <TableRow key={referral.id} className="hover:bg-gray-50">
-                    <TableCell className="py-2 text-sm font-medium">{referral.name}</TableCell>
-                    <TableCell className="py-2 text-sm">{referral.email}</TableCell>
-                    <TableCell className="py-2 text-sm">{formatDate(referral.date)}</TableCell>
-                    <TableCell className="py-2">
-                      <Badge
-                        variant="outline"
-                        className={
-                          referral.status === "Completed"
-                            ? "border-green-500 text-green-600 bg-green-50"
-                            : "border-amber-500 text-amber-600 bg-amber-50"
-                        }
-                      >
-                        <span className="text-xs">{referral.status}</span>
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-2 text-right text-sm font-medium">
-                      {referral.status === "Completed" ? (
-                        formatCurrency(referral.reward)
-                      ) : (
-                        <span className="text-amber-600">Pending</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Invite More Friends */}
-      <Card className="border-none shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/10 via-[#7C3AED]/5 to-transparent rounded-xl"></div>
-        <CardContent className="relative z-10 p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-lg font-bold text-gray-800">Invite More Friends</h3>
-              <p className="text-sm text-gray-600 mt-1">The more friends you invite, the more rewards you earn!</p>
-            </div>
-            <div className="flex space-x-3">
-              <Button className="bg-[#7C3AED] hover:bg-[#6D28D9] h-9 text-sm rounded-lg">
-                <MessageSquare className="mr-1.5 h-4 w-4" />
-                Message Friends
-              </Button>
               <Button
                 variant="outline"
-                className="border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5 h-9 text-sm rounded-lg"
+                size="sm"
+                className="h-8 text-xs flex items-center"
+                onClick={fetchReferralData}
+                disabled={isLoading}
               >
-                <ChevronRight className="h-4 w-4" />
-                View Leaderboard
+                {isLoading ? (
+                  <Loader className="h-3 w-3 mr-1.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3 mr-1.5" />
+                )}
+                Refresh
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Main content */}
+          <main className="max-w-7xl mx-auto px-4 md:px-6 pt-5 pb-8">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-center">
+                  <div className="relative">
+                    <div className="h-16 w-16 mx-auto animate-spin border-4 border-[#7C3AED]/20 border-t-[#9D6FFF] rounded-full"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Gift className="h-6 w-6 text-[#7C3AED]" />
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm font-medium text-gray-600">Loading referral data...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* Referral Link Card */}
+                <div className="md:col-span-1 space-y-5">
+                  <Card className="border-0 shadow-sm overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center">
+                        <Gift className="h-4 w-4 mr-2 text-[#7C3AED]" />
+                        Your Referral Link
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Share this link with friends to earn rewards
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-md p-4 mb-4 border border-violet-100">
+                        <div className="mb-3">
+                          <Label htmlFor="referralCode" className="text-xs text-violet-700">Your Unique Code</Label>
+                          <div className="flex mt-1">
+                            <Input
+                              id="referralCode"
+                              value={referralData?.code || ""}
+                              readOnly
+                              className="rounded-r-none bg-white border-violet-200"
+                            />
+                            <Button 
+                              className="rounded-l-none bg-violet-100 text-violet-700 hover:bg-violet-200 hover:text-violet-800 border border-violet-200"
+                              onClick={() => copyToClipboard(referralData?.code || "", "Referral code copied!")}
+                            >
+                              {copySuccess ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="referralLink" className="text-xs text-violet-700">Referral Link</Label>
+                          <div className="flex mt-1">
+                            <Input
+                              id="referralLink"
+                              value={referralData?.url || ""}
+                              readOnly
+                              className="rounded-r-none text-xs bg-white border-violet-200"
+                            />
+                            <Button 
+                              className="rounded-l-none bg-violet-100 text-violet-700 hover:bg-violet-200 hover:text-violet-800 border border-violet-200"
+                              onClick={() => copyToClipboard(referralData?.url || "", "Referral link copied!")}
+                            >
+                              {copySuccess ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        className="w-full bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white"
+                        onClick={handleShareReferral}
+                      >
+                        <Share className="mr-2 h-4 w-4" />
+                        Share Your Referral Link
+                      </Button>
+                      
+                      {/* Referral Program Info */}
+                      <div className="mt-4 border-t pt-4">
+                        <h3 className="text-sm font-medium mb-2">How It Works</h3>
+                        <ul className="space-y-2">
+                          <li className="flex items-start">
+                            <div className="bg-violet-100 rounded-full h-5 w-5 flex items-center justify-center text-violet-700 text-xs font-medium mt-0.5 mr-2">1</div>
+                            <p className="text-xs text-gray-600">Share your unique referral link with friends</p>
+                          </li>
+                          <li className="flex items-start">
+                            <div className="bg-violet-100 rounded-full h-5 w-5 flex items-center justify-center text-violet-700 text-xs font-medium mt-0.5 mr-2">2</div>
+                            <p className="text-xs text-gray-600">Friends sign up and make a qualifying deposit</p>
+                          </li>
+                          <li className="flex items-start">
+                            <div className="bg-violet-100 rounded-full h-5 w-5 flex items-center justify-center text-violet-700 text-xs font-medium mt-0.5 mr-2">3</div>
+                            <p className="text-xs text-gray-600">You earn {referralData?.commission} commission on their trading fees</p>
+                          </li>
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Referral Stats Card */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center">
+                        <BarChart2 className="h-4 w-4 mr-2 text-[#7C3AED]" />
+                        Referral Statistics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-2 mb-4">
+                        <div className="bg-gray-50 p-3 rounded-md text-center">
+                          <p className="text-[10px] text-gray-500 mb-1">Total Referrals</p>
+                          <p className="text-lg font-semibold text-gray-800">{referralData?.totalReferrals || 0}</p>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-md text-center">
+                          <p className="text-[10px] text-gray-500 mb-1">Active</p>
+                          <p className="text-lg font-semibold text-green-600">{referralData?.activeReferrals || 0}</p>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-md text-center">
+                          <p className="text-[10px] text-gray-500 mb-1">Pending</p>
+                          <p className="text-lg font-semibold text-amber-600">{referralData?.pendingReferrals || 0}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-md border border-green-100 mb-2">
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-green-800">Total Earnings</p>
+                          <div className="flex items-center">
+                            <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+                            <p className="text-sm font-semibold text-green-700">{formatCurrency(referralData?.earnings || 0)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="border-t mt-4 pt-4">
+                        <h4 className="text-xs font-medium text-gray-700 mb-2">Monthly Performance</h4>
+                        <div className="space-y-3">
+                          {referralData?.referralStats.map((stat, i) => (
+                            <div key={i} className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span>{stat.month}</span>
+                                <span className="text-gray-500">{stat.referrals} referrals</span>
+                              </div>
+                              <Progress value={(stat.referrals / 12) * 100} className="h-1" />
+                              <div className="text-right text-xs text-green-600 font-medium">
+                                {formatCurrency(stat.earnings)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Referred Users & Marketing Materials */}
+                <div className="md:col-span-2 space-y-5">
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center">
+                        <Users className="h-4 w-4 mr-2 text-[#7C3AED]" />
+                        Your Referred Users
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Track your referrals and earnings
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {referralData?.referrals && referralData.referrals.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[100px]">User</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead className="text-right">Earnings</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {referralData.referrals.map((referral) => (
+                                <TableRow key={referral.id}>
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center">
+                                      <UserPlus className="h-3.5 w-3.5 mr-2 text-gray-400" />
+                                      <span className="text-xs">{referral.email}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className={
+                                      referral.status === 'active' 
+                                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100 text-[10px]' 
+                                        : referral.status === 'pending'
+                                          ? 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100 text-[10px]'
+                                          : 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100 text-[10px]'
+                                    }>
+                                      {referral.status}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-xs">{referral.date}</TableCell>
+                                  <TableCell className="text-right font-medium text-green-600">
+                                    {formatCurrency(referral.earnings)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <h3 className="text-sm font-medium text-gray-600">No Referrals Yet</h3>
+                          <p className="text-xs text-gray-500 mt-1 mb-4">Share your referral link to start earning</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={handleShareReferral}
+                            className="text-xs"
+                          >
+                            <Share className="mr-2 h-3.5 w-3.5" />
+                            Share Link
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Marketing Materials */}
+                  <Card className="border-0 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center">
+                        <Gift className="h-4 w-4 mr-2 text-[#7C3AED]" />
+                        Marketing Materials
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Resources to help you promote your referral link
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Tabs defaultValue="banners">
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="banners" className="text-xs">Banners</TabsTrigger>
+                          <TabsTrigger value="emails" className="text-xs">Email Templates</TabsTrigger>
+                          <TabsTrigger value="text" className="text-xs">Text Content</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="banners" className="space-y-4 mt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="border rounded-md p-2">
+                              <div className="aspect-[3/1] bg-[#7C3AED] rounded-md flex items-center justify-center">
+                                <div className="text-white text-center">
+                                  <p className="text-xs font-bold">Join {import.meta.env.VITE_BROKER_NAME || "Quantis"}!</p>
+                                  <p className="text-[10px]">Trade Smarter Today</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end mt-2">
+                                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                  <Copy className="h-3 w-3 mr-1.5" />
+                                  Copy Code
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="border rounded-md p-2">
+                              <div className="aspect-[3/1] bg-gradient-to-r from-blue-600 to-violet-600 rounded-md flex items-center justify-center">
+                                <div className="text-white text-center">
+                                  <p className="text-xs font-bold">Get Trading Bonus</p>
+                                  <p className="text-[10px]">Sign Up with My Link</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end mt-2">
+                                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                  <Copy className="h-3 w-3 mr-1.5" />
+                                  Copy Code
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Button variant="outline" size="sm" className="h-8 text-xs">
+                              View More Banners
+                            </Button>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="emails" className="mt-4">
+                          <div className="border rounded-md p-4">
+                            <h3 className="text-sm font-medium mb-2">Invitation Email</h3>
+                            <div className="bg-gray-50 p-3 rounded-md text-xs leading-relaxed">
+                              <p>Hi there,</p>
+                              <p className="mt-2">
+                                I've been trading with {import.meta.env.VITE_BROKER_NAME || "Quantis"} and thought you might be interested too. 
+                                They offer great trading conditions, low spreads, and a user-friendly platform.
+                              </p>
+                              <p className="mt-2">
+                                If you sign up using my referral link below, we both get benefits!
+                              </p>
+                              <p className="mt-2 text-[#7C3AED] font-medium">
+                                {referralData?.url}
+                              </p>
+                              <p className="mt-2">
+                                Let me know if you have any questions about the platform.
+                              </p>
+                              <p className="mt-2">Best regards,</p>
+                              <p>{user?.firstName || "Your Name"}</p>
+                            </div>
+                            <div className="flex justify-end mt-3">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 text-xs"
+                                onClick={() => copyToClipboard(
+                                  `Hi there,\n\nI've been trading with ${import.meta.env.VITE_BROKER_NAME || "Quantis"} and thought you might be interested too. They offer great trading conditions, low spreads, and a user-friendly platform.\n\nIf you sign up using my referral link below, we both get benefits!\n\n${referralData?.url}\n\nLet me know if you have any questions about the platform.\n\nBest regards,\n${user?.firstName || "Your Name"}`,
+                                  "Email template copied!"
+                                )}
+                              >
+                                <Copy className="h-3.5 w-3.5 mr-1.5" />
+                                Copy Template
+                              </Button>
+                            </div>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="text" className="mt-4 space-y-4">
+                          <div className="border rounded-md p-4">
+                            <h3 className="text-sm font-medium mb-2">Social Media Post</h3>
+                            <div className="bg-gray-50 p-3 rounded-md text-xs leading-relaxed">
+                              <p>
+                                🚀 I've been loving my trading experience with {import.meta.env.VITE_BROKER_NAME || "Quantis"}! 
+                                If you're looking to get into forex trading, use my referral link to get started and we'll both benefit! 
+                                {referralData?.url} #Trading #Forex #Investment
+                              </p>
+                            </div>
+                            <div className="flex justify-end mt-3">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 text-xs"
+                                onClick={() => copyToClipboard(
+                                  `🚀 I've been loving my trading experience with ${import.meta.env.VITE_BROKER_NAME || "Quantis"}! If you're looking to get into forex trading, use my referral link to get started and we'll both benefit! ${referralData?.url} #Trading #Forex #Investment`,
+                                  "Social media text copied!"
+                                )}
+                              >
+                                <Copy className="h-3.5 w-3.5 mr-1.5" />
+                                Copy Text
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="border rounded-md p-4">
+                            <h3 className="text-sm font-medium mb-2">WhatsApp/Messenger</h3>
+                            <div className="bg-gray-50 p-3 rounded-md text-xs leading-relaxed">
+                              <p>
+                                Hey! I thought you might be interested in this trading platform I'm using. 
+                                If you sign up with my link, you'll get some nice bonuses: {referralData?.url}
+                              </p>
+                            </div>
+                            <div className="flex justify-end mt-3">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 text-xs"
+                                onClick={() => copyToClipboard(
+                                  `Hey! I thought you might be interested in this trading platform I'm using. If you sign up with my link, you'll get some nice bonuses: ${referralData?.url}`,
+                                  "Messenger text copied!"
+                                )}
+                              >
+                                <Copy className="h-3.5 w-3.5 mr-1.5" />
+                                Copy Text
+                              </Button>
+                            </div>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default ReferPage;
