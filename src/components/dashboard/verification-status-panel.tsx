@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,7 @@ import { Info, CheckCircle, Circle, ArrowRight } from 'lucide-react';
 import { User } from '@/types/user.types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import axios from 'axios';
-import api from '@/services/api';
+import { api } from '@/services/api';
 
 interface VerificationStatusPanelProps {
   user: User | null;

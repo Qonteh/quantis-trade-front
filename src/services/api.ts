@@ -147,4 +147,9 @@ const tradingApi = {
   }
 };
 
+// Export both the api instance and service objects
 export { api, authApi, tradingApi };
+
+// Export AuthService and TradingService for backward compatibility
+export const AuthService = authApi;
+export const TradingService = tradingApi;
