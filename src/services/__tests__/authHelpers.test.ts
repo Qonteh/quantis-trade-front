@@ -146,7 +146,7 @@ describe('useAuthHelpers', () => {
       });
       
       // Assert
-      expect(AuthService.login).toHaveBeenCalledWith(email, password);
+      expect(AuthService.login).toHaveBeenCalledWith({ email, password });
       expect(userData).toEqual(mockResponse.data);
     });
     
@@ -165,7 +165,7 @@ describe('useAuthHelpers', () => {
       
       // Assert
       await expect(result.current.login(email, password)).rejects.toThrow();
-      expect(AuthService.login).toHaveBeenCalledWith(email, password);
+      expect(AuthService.login).toHaveBeenCalledWith({ email, password });
     });
   });
 
@@ -174,10 +174,12 @@ describe('useAuthHelpers', () => {
       // Arrange
       localStorageMock.setItem('token', 'mock-token');
       localStorageMock.setItem('user', JSON.stringify({ id: '1', name: 'John' }));
-      window.location.href = '/dashboard';
+      
+      // Mock navigate function
+      const mockNavigate = vi.fn();
       
       // Act
-      const { result } = renderHook(() => useAuthHelpers());
+      const { result } = renderHook(() => useAuthHelpers(mockNavigate));
       
       act(() => {
         result.current.logout();
@@ -185,7 +187,9 @@ describe('useAuthHelpers', () => {
       
       // Assert
       expect(AuthService.logout).toHaveBeenCalled();
-      expect(window.location.href).toBe('/');
+      expect(localStorageMock.getItem('token')).toBeNull();
+      expect(localStorageMock.getItem('user')).toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
   });
 });

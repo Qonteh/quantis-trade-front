@@ -96,14 +96,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     // Clear user data from state
     setUser(null);
-    // Use AuthService to clear localStorage
-    AuthService.logout();
-    // Redirect is handled by the component using this function
+    // Use authLogout to clear localStorage and perform API logout
+    authLogout();
   };
   
   const verifyEmail = async (userId: string, code: string) => {
     try {
-      const response = await verifyUserEmail(userId, code);
+      const response = await verifyUserEmail({ userId, code });
       
       // Update the user's verified status
       setUser(prevUser => {

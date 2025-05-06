@@ -6,9 +6,9 @@ import { ApiError } from '@/types/api.types';
 export const useVerificationHelpers = () => {
   const { toast } = useToast();
 
-  const verifyEmail = async (userId: string, code: string) => {
+  const verifyEmail = async (verificationData: any) => {
     try {
-      const response = await AuthService.verifyEmail(userId, code);
+      const response = await AuthService.verifyEmail(verificationData);
       
       toast({
         title: "Email verified",
@@ -30,7 +30,7 @@ export const useVerificationHelpers = () => {
   
   const resendVerification = async (email: string) => {
     try {
-      const response = await AuthService.resendVerification(email);
+      const response = await AuthService.resendVerification({ email });
       
       toast({
         title: "Verification code sent",

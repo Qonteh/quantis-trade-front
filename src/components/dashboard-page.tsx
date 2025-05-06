@@ -20,13 +20,51 @@ import AccountActionsMenu from "@/components/dashboard/account-actions-menu"
 import SupportChat from "@/components/dashboard/support-chat"
 import { tradingApi } from "@/services/api"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/context/UserContext"
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview")
   const [tradingAccounts, setTradingAccounts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [accountStats, setAccountStats] = useState({
+    equity: 0,
+    credit: 0,
+    deposit: 0
+  })
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user } = useAuth()
+
+  // Market data for the ticker
+  const marketData = [
+    { pair: "EUR/USD", price: "1.0876", change: "+0.15%" },
+    { pair: "GBP/USD", price: "1.2534", change: "+0.25%" },
+    { pair: "USD/JPY", price: "148.56", change: "-0.12%" },
+    { pair: "BTC/USD", price: "68,432.50", change: "+2.34%" },
+    { pair: "ETH/USD", price: "3,542.18", change: "+1.89%" },
+    { pair: "XAU/USD", price: "2,324.50", change: "-0.22%" }
+  ]
+
+  // Format currency with 2 decimal places
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  useEffect(() => {
+    // Handle window resize for mobile detection
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchTradingAccounts = async () => {
@@ -35,6 +73,16 @@ export default function DashboardPage() {
         const response = await tradingApi.getMTAccounts()
         if (response && response.data) {
           setTradingAccounts(response.data)
+          
+          // Calculate account statistics
+          const stats = response.data.reduce((acc, account) => {
+            acc.equity += account.equity || 0;
+            acc.credit += account.credit || 0;
+            acc.deposit += account.balance || 0;
+            return acc;
+          }, { equity: 0, credit: 0, deposit: 0 });
+          
+          setAccountStats(stats);
         }
       } catch (error) {
         console.error("Error fetching trading accounts:", error)
@@ -73,12 +121,17 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <DashboardHeader />
-      <MarketTicker />
+      <DashboardHeader marketData={marketData} isMobile={isMobile} />
+      <MarketTicker initialData={marketData} />
 
       <main className="flex-1 p-4 space-y-4 md:p-6">
         <div className="mx-auto max-w-7xl">
-          <DashboardStats />
+          <DashboardStats 
+            equity={accountStats.equity} 
+            credit={accountStats.credit} 
+            deposit={accountStats.deposit} 
+            formatCurrency={formatCurrency} 
+          />
 
           <div className="grid gap-4 mt-8">
             <div className="grid gap-4 md:grid-cols-3">
@@ -108,7 +161,11 @@ export default function DashboardPage() {
                           {tradingAccounts
                             .filter(account => account.type === "live")
                             .map((account, index) => (
-                              <TradingAccountPanel key={account.accountId || index} account={account} />
+                              <TradingAccountPanel 
+                                key={account.accountId || index} 
+                                account={account} 
+                                formatCurrency={formatCurrency}
+                              />
                             ))}
                         </div>
                       ) : (
@@ -130,7 +187,12 @@ export default function DashboardPage() {
                           {tradingAccounts
                             .filter(account => account.type === "demo")
                             .map((account, index) => (
-                              <TradingAccountPanel key={account.accountId || index} account={account} />
+                              <TradingAccountPanel 
+                                key={account.accountId || index} 
+                                account={account}
+                                formatCurrency={formatCurrency}
+                                isDemoAccount={true}
+                              />
                             ))}
                         </div>
                       ) : (
@@ -171,40 +233,8 @@ export default function DashboardPage() {
                   <CardTitle>Verification Status</CardTitle>
                   <CardDescription>Complete your profile</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5 bg-green-400 text-white p-0.5 rounded-full">
-                      <CheckCircle className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium">Email Verification</h3>
-                      <p className="text-xs text-gray-500">Your email has been verified</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5 bg-yellow-400 text-white p-0.5 rounded-full">
-                      <CheckCircle className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium">Identity Verification</h3>
-                      <p className="text-xs text-gray-500">Upload ID documents</p>
-                      <Button size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => navigate("/verification")}>
-                        Complete verification
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5 bg-gray-200 text-white p-0.5 rounded-full">
-                      <CheckCircle className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium">Address Verification</h3>
-                      <p className="text-xs text-gray-500">Upload proof of address</p>
-                      <Button size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => navigate("/verification")}>
-                        Complete verification
-                      </Button>
-                    </div>
-                  </div>
+                <CardContent>
+                  <VerificationStatusPanel user={user} />
                 </CardContent>
               </Card>
 

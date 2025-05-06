@@ -53,7 +53,7 @@ export const useAuthHelpers = (navigate?: (path: string, options?: any) => void)
   
   const login = async (email: string, password: string) => {
     try {
-      const response = await AuthService.login(email, password);
+      const response = await AuthService.login({ email, password });
       
       // Store both token and user data
       localStorage.setItem('token', response.token);
