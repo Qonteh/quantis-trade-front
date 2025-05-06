@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,8 @@ const DashboardPage: React.FC = () => {
   ]);
   
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [isServerChecked, setIsServerChecked] = useState(false);
   const [accountPerformance, setAccountPerformance] = useState({
     daily: Math.random() * 2 - 1, // Random between -1% and 1%
     weekly: Math.random() * 4 - 2, // Random between -2% and 2%
@@ -67,8 +70,82 @@ const DashboardPage: React.FC = () => {
   });
   
   const { toast } = useToast();
-  const { serverStatus, checkServerStatus } = useMTServer();
+  const { serverStatus, checkServerStatus, isLoading: mtLoading } = useMTServer();
   
+  // Use useCallback to prevent unnecessary re-renders
+  const fetchAccountData = useCallback(async (showToast = true) => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      setHasError(false);
+      
+      // Only check server status once to avoid constant refreshes from potential errors
+      if (!isServerChecked) {
+        try {
+          await checkServerStatus();
+          setIsServerChecked(true);
+        } catch (error) {
+          console.error("MT server check failed, but continuing:", error);
+          // Don't set error state here - we'll continue even if server check fails
+        }
+      }
+      
+      try {
+        // Fetch real account details from backend
+        const accountDetails = await TradingService.getAccountDetails();
+        
+        // Set live account data based on user's wallet balance and account details
+        setLiveAccount(prev => ({
+          ...prev,
+          leverage: accountDetails.data?.leverage || "1:2000",
+          accountType: accountDetails.data?.accountType || "Standard",
+          tradingServer: accountDetails.data?.tradingServer || "Quantis-Live",
+          equity: user?.walletBalance || 0,
+          balance: user?.walletBalance || 0,
+          margin: user?.walletBalance ? user.walletBalance * 0.02 : 0
+        }));
+        
+        // Set demo account data based on user's demo balance
+        setDemoAccount(prev => ({
+          ...prev,
+          leverage: accountDetails.data?.leverage || "1:2000",
+          accountType: accountDetails.data?.accountType || "Demo",
+          tradingServer: accountDetails.data?.tradingServer || "Quantis-Demo",
+          equity: user?.demoBalance || 10000,
+          balance: user?.demoBalance || 10000,
+          margin: user?.demoBalance ? user.demoBalance * 0.01 : 0
+        }));
+      } catch (error) {
+        console.error("Error fetching account details:", error);
+        // Don't throw error here, use fallback data instead
+      }
+      
+      setIsLoading(false);
+      
+      // Show welcome toast only on initial load if requested
+      if (showToast) {
+        toast({
+          title: "Welcome back!",
+          description: `Good to see you again, ${user.firstName}!`,
+        });
+      }
+    } catch (error) {
+      console.error("Error in data fetch flow:", error);
+      setIsLoading(false);
+      setHasError(true);
+      
+      // Only show error toast if specifically requested to show toasts
+      if (showToast) {
+        toast({
+          variant: "destructive",
+          title: "Connection issue",
+          description: "We're having trouble connecting to the servers. Using cached data."
+        });
+      }
+    }
+  }, [user, toast, checkServerStatus, isServerChecked]);
+
   useEffect(() => {
     // Handle responsive sidebar
     const handleResize = () => {
@@ -83,67 +160,15 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
-    // Use real user data if authenticated
-    if (isAuthenticated && user) {
-      // Get real account data
-      const fetchAccountData = async () => {
-        try {
-          setIsLoading(true);
-          
-          // Check MT server status
-          await checkServerStatus();
-          
-          // Fetch real account details from backend
-          const accountDetails = await TradingService.getAccountDetails();
-          
-          // Set live account data based on user's wallet balance and account details
-          setLiveAccount(prev => ({
-            ...prev,
-            leverage: accountDetails.data?.leverage || "1:2000",
-            accountType: accountDetails.data?.accountType || "Standard",
-            tradingServer: accountDetails.data?.tradingServer || "Quantis-Live",
-            equity: user?.walletBalance || 0,
-            balance: user?.walletBalance || 0,
-            margin: user?.walletBalance ? user.walletBalance * 0.02 : 0
-          }));
-          
-          // Set demo account data based on user's demo balance
-          setDemoAccount(prev => ({
-            ...prev,
-            leverage: accountDetails.data?.leverage || "1:2000",
-            accountType: accountDetails.data?.accountType || "Demo",
-            tradingServer: accountDetails.data?.tradingServer || "Quantis-Demo",
-            equity: user?.demoBalance || 10000,
-            balance: user?.demoBalance || 10000,
-            margin: user?.demoBalance ? user.demoBalance * 0.01 : 0
-          }));
-          
-          setIsLoading(false);
-          
-          // Show welcome toast
-          toast({
-            title: "Welcome back!",
-            description: `Good to see you again, ${user.firstName}!`,
-          });
-        } catch (error) {
-          console.error("Error fetching account data:", error);
-          setIsLoading(false);
-          
-          toast({
-            variant: "destructive",
-            title: "Error fetching account data",
-            description: "Could not load your account information. Please try again later."
-          });
-        }
-      };
-      
-      fetchAccountData();
+    // Use real user data if authenticated - only on initial load
+    if (isAuthenticated && user && !isServerChecked) {
+      fetchAccountData(true);
     }
     
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [isAuthenticated, loading, user, navigate, toast, checkServerStatus]);
+  }, [isAuthenticated, loading, user, navigate, fetchAccountData, isServerChecked]);
 
   const handleDeposit = () => {
     navigate("/deposit");
@@ -162,45 +187,12 @@ const DashboardPage: React.FC = () => {
   };
 
   const refreshData = async () => {
-    setIsLoading(true);
-    try {
-      // Refresh account details
-      const accountDetails = await TradingService.getAccountDetails();
-      
-      // Fetch wallet balance
-      const balanceData = await TradingService.getBalance();
-      
-      // Update account data
-      setLiveAccount(prev => ({
-        ...prev,
-        equity: balanceData.data?.walletBalance || 0,
-        balance: balanceData.data?.walletBalance || 0,
-        margin: balanceData.data?.walletBalance ? balanceData.data.walletBalance * 0.02 : 0,
-        leverage: accountDetails.data?.leverage || "1:2000",
-      }));
-      
-      setDemoAccount(prev => ({
-        ...prev,
-        equity: balanceData.data?.demoBalance || 10000,
-        balance: balanceData.data?.demoBalance || 10000,
-        margin: balanceData.data?.demoBalance ? balanceData.data.demoBalance * 0.01 : 0,
-        leverage: accountDetails.data?.leverage || "1:2000",
-      }));
-      
-      toast({
-        title: "Data refreshed",
-        description: "Your account information has been updated."
-      });
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-      toast({
-        variant: "destructive",
-        title: "Refresh failed",
-        description: "Could not update your account information."
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await fetchAccountData(false);
+    
+    toast({
+      title: "Data refreshed",
+      description: "Your account information has been updated."
+    });
   };
 
   // Enhanced loading screen with branded colors
@@ -248,7 +240,7 @@ const DashboardPage: React.FC = () => {
                   size="sm" 
                   className="h-8 text-xs flex items-center"
                   onClick={refreshData}
-                  disabled={isLoading}
+                  disabled={isLoading || mtLoading.serverStatus}
                 >
                   {isLoading ? (
                     <Loader className="h-3 w-3 mr-1.5 animate-spin" />
@@ -472,7 +464,7 @@ const DashboardPage: React.FC = () => {
                           </div>
                           <div className="text-[10px] text-gray-500 flex items-center">
                             <Info className="h-2.5 w-2.5 mr-1 text-gray-400" />
-                            MT4 server: {liveAccount.server.replace('Quantis', 'Quantis-MT4')}
+                            MT4 server: {import.meta.env.VITE_MT4_DEMO_SERVER || "demo.quantisfx.com"}
                           </div>
                         </div>
                         
@@ -492,7 +484,7 @@ const DashboardPage: React.FC = () => {
                           </div>
                           <div className="text-[10px] text-gray-500 flex items-center">
                             <Info className="h-2.5 w-2.5 mr-1 text-gray-400" />
-                            MT5 server: {liveAccount.server.replace('Quantis', 'Quantis-MT5')}
+                            MT5 server: {import.meta.env.VITE_MT5_DEMO_SERVER || "mt5demo.quantisfx.com"}
                           </div>
                         </div>
                       </div>
