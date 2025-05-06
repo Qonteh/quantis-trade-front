@@ -30,7 +30,7 @@ export const useVerificationHelpers = () => {
   
   const resendVerification = async (email: string) => {
     try {
-      const response = await AuthService.resendVerification({ email });
+      const response = await AuthService.resendVerification(email);
       
       toast({
         title: "Verification code sent",

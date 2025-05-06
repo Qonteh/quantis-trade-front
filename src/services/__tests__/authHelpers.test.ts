@@ -87,9 +87,16 @@ describe('useAuthHelpers', () => {
       
       // Assert
       expect(AuthService.register).toHaveBeenCalledWith(mockUserData);
-      expect(userData).toEqual(mockResponse.data);
+      expect(userData).toEqual({
+        id: mockResponse.data.id,
+        firstName: mockResponse.data.firstName,
+        lastName: mockResponse.data.lastName,
+        email: mockResponse.data.email,
+        isVerified: false,
+        countryCode: mockUserData.countryCode,
+        phone: mockUserData.phone
+      });
       expect(localStorageMock.getItem('token')).toBe('mock-token');
-      expect(localStorageMock.getItem('user')).toBe(JSON.stringify(mockResponse.data));
     });
     
     it('should throw an error when registration fails', async () => {

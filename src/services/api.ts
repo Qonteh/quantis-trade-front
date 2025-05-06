@@ -63,6 +63,12 @@ const authApi = {
     return response.data;
   },
   
+  logout: async () => {
+    // No API call needed for logout in this implementation
+    // Just return a successful response
+    return { success: true };
+  },
+  
   verifyEmail: async (verificationData) => {
     const response = await api.post('/auth/verify-email', verificationData);
     return response.data;

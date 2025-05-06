@@ -52,8 +52,7 @@ describe('useVerificationHelpers', () => {
   describe('verifyEmail', () => {
     it('should verify email successfully', async () => {
       // Arrange
-      const userId = '123';
-      const code = '123456';
+      const verificationData = { userId: '123', code: '123456' };
       const mockResponse = { 
         success: true, 
         message: 'Email successfully verified' 
@@ -66,18 +65,17 @@ describe('useVerificationHelpers', () => {
       let response;
       
       await act(async () => {
-        response = await result.current.verifyEmail(userId, code);
+        response = await result.current.verifyEmail(verificationData);
       });
       
       // Assert
-      expect(AuthService.verifyEmail).toHaveBeenCalledWith(userId, code);
+      expect(AuthService.verifyEmail).toHaveBeenCalledWith(verificationData);
       expect(response).toEqual(mockResponse);
     });
     
     it('should throw an error when email verification fails', async () => {
       // Arrange
-      const userId = '123';
-      const code = '000000';
+      const verificationData = { userId: '123', code: '000000' };
       
       const error = new Error('Verification failed') as ApiError;
       error.response = { data: { error: 'Invalid verification code' } };
@@ -88,8 +86,8 @@ describe('useVerificationHelpers', () => {
       const { result } = renderHook(() => useVerificationHelpers());
       
       // Assert
-      await expect(result.current.verifyEmail(userId, code)).rejects.toThrow();
-      expect(AuthService.verifyEmail).toHaveBeenCalledWith(userId, code);
+      await expect(result.current.verifyEmail(verificationData)).rejects.toThrow();
+      expect(AuthService.verifyEmail).toHaveBeenCalledWith(verificationData);
     });
   });
 
