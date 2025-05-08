@@ -160,11 +160,13 @@ export default function WithdrawPage() {
   }
 
   const formatCurrency = (value) => {
+    // Ensure value is treated as a string to avoid type issues
+    const numValue = typeof value === 'string' ? parseFloat(value || '0') : value;
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: selectedCurrency,
       minimumFractionDigits: 2,
-    }).format(value)
+    }).format(numValue);
   }
 
   const getSelectedAccount = () => {
@@ -599,3 +601,4 @@ export default function WithdrawPage() {
     </div>
   )
 }
+
