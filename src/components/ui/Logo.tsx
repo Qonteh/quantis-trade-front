@@ -10,8 +10,8 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({ 
   className = "", 
-  width = 120, 
-  height = 40,
+  width = 100, 
+  height = 36,
   darkMode = false
 }) => {
   return (
@@ -22,6 +22,7 @@ const Logo: React.FC<LogoProps> = ({
         className={`object-contain ${darkMode ? 'brightness-0 invert' : ''}`}
         width={width} 
         height={height}
+        style={{ maxHeight: height + 'px' }}
       />
     </div>
   );

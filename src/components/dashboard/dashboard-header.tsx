@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
 import { Bell, Search, User, ChevronDown } from 'lucide-react';
-import MarketTicker from './market-ticker';
 import AccountDetails from './account-details';
 import { useAuth } from '@/context/UserContext';
 import Logo from '../ui/Logo';
@@ -32,25 +32,34 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ marketData, isMobile 
   };
   
   return (
-    <header className="bg-[#2D1B69] py-3 px-4 md:px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between">
-          <div className="flex items-center mb-2 md:mb-0">
+    <header className="bg-[#2D1B69] py-3 px-4 md:px-6 w-full max-w-full overflow-hidden">
+      <div className="max-w-full mx-auto">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
             {isMobile && (
-              <div className="flex items-center">
-                <Logo width={80} height={30} />
+              <div className="flex items-center mr-3">
+                <Logo darkMode={true} width={80} height={30} />
               </div>
             )}
-            <div className="flex ml-auto md:ml-0">
+            <div className="flex">
               <span className="text-white text-sm font-medium">Dashboard</span>
               <span className="inline-flex items-center justify-center px-1.5 py-0.5 ml-2 text-[10px] font-medium text-green-800 bg-green-200 rounded">Live</span>
             </div>
           </div>
           
-          <MarketTicker initialData={marketData} />
+          <div className="hidden md:flex items-center space-x-2 overflow-x-auto">
+            {marketData.slice(0, 3).map((item, index) => (
+              <div key={index} className="flex items-center bg-white/10 rounded px-2 py-1 text-white text-xs">
+                <span className="font-medium">{item.pair}</span>
+                <span className={`ml-2 ${item.change.startsWith('+') ? 'text-green-300' : 'text-red-300'}`}>
+                  {item.change}
+                </span>
+              </div>
+            ))}
+          </div>
           
-          <div className="hidden md:flex items-center gap-4">
-            <div className="relative w-40">
+          <div className="flex items-center gap-4">
+            <div className="relative hidden md:block w-40">
               <input 
                 type="text" 
                 placeholder="Search..." 
@@ -89,8 +98,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ marketData, isMobile 
                       <div className="flex items-start">
                         <div className="w-2 h-2 mt-1 rounded-full bg-blue-500 mr-2"></div>
                         <div>
-                          <p className="text-xs font-medium">New Feature Available</p>
-                          <p className="text-[10px] text-gray-500">Try our new mobile trading app!</p>
+                          <p className="text-xs font-medium">Verification Required</p>
+                          <p className="text-[10px] text-gray-500">Complete identity verification to remove limits.</p>
                           <p className="text-[9px] text-gray-400 mt-1">2 hours ago</p>
                         </div>
                       </div>
@@ -102,16 +111,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ marketData, isMobile 
                           <p className="text-xs font-medium">Complete Verification</p>
                           <p className="text-[10px] text-gray-500">Please complete your account verification.</p>
                           <p className="text-[9px] text-gray-400 mt-1">1 day ago</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-3 border-b hover:bg-gray-50">
-                      <div className="flex items-start">
-                        <div className="w-2 h-2 mt-1 rounded-full bg-gray-300 mr-2"></div>
-                        <div>
-                          <p className="text-xs font-medium">Welcome to Quantis FX</p>
-                          <p className="text-[10px] text-gray-500">Thank you for registering with us.</p>
-                          <p className="text-[9px] text-gray-400 mt-1">3 days ago</p>
                         </div>
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,13 +52,13 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
     setIsNavigating(true);
     
     toast({
-      title: "Redirecting to verification",
+      title: "Redirecting to document verification",
       description: "Please complete your identity verification to unlock all features.",
     });
     
-    // Simulate loading before redirecting
+    // Navigate directly to document verification tab
     setTimeout(() => {
-      navigate('/verify');
+      navigate('/verify', { state: { activeTab: 'documents' } });
       setIsNavigating(false);
     }, 500);
   };
@@ -94,7 +95,7 @@ const VerificationStatusPanel: React.FC<VerificationStatusPanelProps> = ({
           <p className="text-xs text-gray-500 mb-3">
             {verificationStatus.percentage === 100 
               ? 'Full account access' 
-              : 'Limited account access'}
+              : 'Limited account access - $2,000 deposit/withdrawal limit'}
           </p>
           
           <div className="mb-4">

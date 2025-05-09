@@ -28,6 +28,10 @@ const documentTypes = [
 ];
 
 const VerificationFlow: React.FC = () => {
+  const location = useLocation();
+  // Check if we should start at the documents tab based on state
+  const initialTab = location.state?.activeTab || "email";
+  
   const [step, setStep] = useState(1);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,10 +47,9 @@ const VerificationFlow: React.FC = () => {
   const [frontDocument, setFrontDocument] = useState<File | null>(null);
   const [backDocument, setBackDocument] = useState<File | null>(null);
   const [selfieDocument, setSelfieDocument] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState("email");
+  const [activeTab, setActiveTab] = useState(initialTab);
   
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const { user, verifyEmail } = useAuth();
 
@@ -54,8 +57,14 @@ const VerificationFlow: React.FC = () => {
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
 
   useEffect(() => {
+    // Enable navigation to specific tab if coming from verification panel
+    if (initialTab === "documents") {
+      // If we're jumping directly to documents tab, assume previous steps are complete
+      setEmailVerified(true);
+      setPersonalInfoVerified(true);
+    } 
     // Check if we're coming from registration
-    if (location.state?.fromRegistration) {
+    else if (location.state?.fromRegistration) {
       setShowLoadingScreen(true);
       
       // Display loading screen for 2 seconds before showing verification
@@ -65,7 +74,7 @@ const VerificationFlow: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [location]);
+  }, [location, initialTab]);
 
   const handleSubmitCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,9 +155,9 @@ const VerificationFlow: React.FC = () => {
           variant: "default",
         });
         
-        // Redirect to login after completing all verification steps
+        // Redirect to dashboard after completing all verification steps
         setTimeout(() => {
-          navigate("/login");
+          navigate("/dashboard");
         }, 2000);
       }
     } catch (error) {
@@ -185,7 +194,7 @@ const VerificationFlow: React.FC = () => {
           <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
           <h3 className="font-medium text-green-800">Verification Complete!</h3>
           <p className="text-sm text-green-600 mt-1">
-            You will be redirected to the login page shortly...
+            You will be redirected to the dashboard shortly...
           </p>
         </div>
       );
@@ -197,7 +206,7 @@ const VerificationFlow: React.FC = () => {
   if (showLoadingScreen) {
     return (
       <div className="min-h-screen bg-[#2D1B69] flex flex-col items-center justify-center">
-        <Logo darkMode={true} width={150} height={50} />
+        <Logo darkMode={true} width={120} height={40} />
         <div className="mt-6">
           <div className="h-8 w-8 mx-auto animate-spin border-4 border-[#9D6FFF] border-t-white rounded-full"></div>
         </div>
@@ -209,7 +218,7 @@ const VerificationFlow: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-6 flex flex-col items-center justify-center">
       <div className="w-full max-w-3xl p-6 bg-white rounded-lg shadow-lg">
         <div className="flex justify-center mb-6">
-          <Logo width={150} height={50} />
+          <Logo width={120} height={40} />
         </div>
         
         <div className="text-center mb-6">
@@ -239,7 +248,7 @@ const VerificationFlow: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="documents" 
-              disabled={!personalInfoVerified || (activeTab !== "documents" && !documentsVerified)}
+              disabled={(initialTab !== "documents" && !personalInfoVerified) || (activeTab !== "documents" && !documentsVerified)}
               className={documentsVerified ? "data-[state=active]:bg-green-100 data-[state=active]:text-green-800" : ""}
             >
               {documentsVerified && <Check className="h-4 w-4 mr-2 text-green-600" />}
@@ -408,7 +417,7 @@ const VerificationFlow: React.FC = () => {
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">Document Verification</h3>
               <p className="text-gray-600 text-sm mb-4">
-                Please upload clear images of your identification documents.
+                Please upload clear images of your identification documents to remove the $2,000 deposit/withdrawal limit.
               </p>
               
               {!documentsVerified ? (

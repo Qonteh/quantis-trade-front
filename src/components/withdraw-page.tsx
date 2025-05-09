@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Check } from "lucide-react"
+import { AlertCircle, Check, Info } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import DashboardSidebar from "./dashboard-sidebar"
 import Navigation from "./Navigation"
+import { useAuth } from "@/context/UserContext"
 
 export default function WithdrawPage() {
   const [withdrawAmount, setWithdrawAmount] = useState<number | string>("")
@@ -29,6 +30,11 @@ export default function WithdrawPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  
+  // Get user verification status from UserContext
+  const isFullyVerified = user?.isVerified || false
+  const withdrawalLimit = isFullyVerified ? null : 2000
   
   // Available trading accounts (in a real app, this would come from an API)
   const tradingAccounts = [
@@ -87,9 +93,21 @@ export default function WithdrawPage() {
       }
     }
     
+    // Check if withdrawal exceeds limit for non-verified users
+    const withdrawalAmountNum = parseFloat(withdrawAmount.toString())
+    if (!isFullyVerified && withdrawalAmountNum > 2000) {
+      setError(`Withdrawal amount exceeds your limit of $2,000. Please verify your identity to increase this limit.`)
+      toast({
+        title: "Verification required",
+        description: "Complete identity verification to increase your withdrawal limit.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     // Check if withdrawal amount exceeds account balance
     const account = tradingAccounts.find(acc => acc.id === selectedAccount)
-    if (account && parseFloat(withdrawAmount.toString()) > account.balance) {
+    if (account && withdrawalAmountNum > account.balance) {
       setError(`Insufficient funds. Your available balance is ${formatCurrency(account.balance)}`)
       return
     }
@@ -152,6 +170,16 @@ export default function WithdrawPage() {
         <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
           <div className="max-w-3xl mx-auto py-6">
             <h1 className="text-3xl font-bold mb-6">Withdraw Funds</h1>
+            
+            {!isFullyVerified && (
+              <Alert variant="warning" className="mb-6 bg-amber-50 border-amber-200">
+                <Info className="h-5 w-5 text-amber-600" />
+                <AlertTitle className="text-amber-800">Withdrawal Limit</AlertTitle>
+                <AlertDescription className="text-amber-700">
+                  Your current withdrawal limit is $2,000. <a onClick={() => navigate('/verify')} className="underline cursor-pointer font-medium">Complete identity verification</a> to remove this limit.
+                </AlertDescription>
+              </Alert>
+            )}
             
             {successMessage ? (
               <Card>
@@ -222,6 +250,11 @@ export default function WithdrawPage() {
                             onChange={(e) => setWithdrawAmount(e.target.value)}
                           />
                         </div>
+                        {!isFullyVerified && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            Maximum withdrawal: $2,000. Verify your identity to increase this limit.
+                          </p>
+                        )}
                       </div>
                       
                       <div>
@@ -318,6 +351,11 @@ export default function WithdrawPage() {
                     <p>
                       <strong>Minimum withdrawal:</strong> $100 USD
                     </p>
+                    {!isFullyVerified && (
+                      <p>
+                        <strong>Maximum withdrawal:</strong> $2,000 USD. <a onClick={() => navigate('/verify')} className="text-blue-600 hover:underline cursor-pointer">Verify your identity</a> to remove this limit.
+                      </p>
+                    )}
                     <p>
                       <strong>Need help?</strong> Contact our support team at support@quantisfx.com
                     </p>
