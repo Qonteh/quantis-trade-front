@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/UserContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from '@/components/ui/use-toast';
+import Logo from '@/components/ui/Logo';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -171,7 +172,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
               <div className="flex items-center">
                 <Avatar className="h-10 w-10 mr-3 border-2 border-[#3d2a87]">
                   <AvatarImage src={user?.avatarUrl} />
-                  <AvatarFallback className="bg-[#3d2a87] text-white">
+                  <AvatarFallback className="bg-[#3d2a87] text-white text-xs">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </AvatarFallback>
                 </Avatar>

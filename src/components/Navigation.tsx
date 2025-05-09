@@ -21,6 +21,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("user")
     window.location.href = "/"
   }
 
@@ -30,10 +31,10 @@ export default function Navigation() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="flex h-14 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <Logo />
+            <Logo height={32} width={100} />
           </Link>
         </div>
         <nav className="hidden md:flex gap-6 text-sm">
