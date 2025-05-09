@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Bell, Search, User, ChevronDown } from 'lucide-react';
 import MarketTicker from './market-ticker';
 import AccountDetails from './account-details';
 import { useAuth } from '@/context/UserContext';
+import Logo from '../ui/Logo';
 
 interface MarketDataItem {
   pair: string;
@@ -37,12 +37,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ marketData, isMobile 
         <div className="flex flex-col md:flex-row justify-between">
           <div className="flex items-center mb-2 md:mb-0">
             {isMobile && (
-              <div className="flex items-baseline">
-                <span className="text-[#9D6FFF] font-bold text-lg">Q</span>
-                <span className="text-white font-bold text-lg">uantis</span>
-                <span className="text-[#9D6FFF] font-bold text-xs translate-y-[-4px] ml-[1px]">
-                  FX
-                </span>
+              <div className="flex items-center">
+                <Logo width={80} height={30} />
               </div>
             )}
             <div className="flex ml-auto md:ml-0">

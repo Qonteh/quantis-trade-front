@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -12,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Loader2, Shield, Globe, Clock, Users, Lock } from 'lucide-react'
 import { useAuth } from "@/context/UserContext"
+import Logo from "../ui/Logo"
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -22,17 +22,6 @@ const loginFormSchema = z.object({
   }),
   rememberMe: z.boolean().optional(),
 })
-
-// Logo component to ensure consistent styling
-const QuantisLogo = ({ className = "", darkMode = false }) => (
-  <div className={`flex items-baseline ${className}`}>
-    <span className={`${darkMode ? "text-[#9D6FFF]" : "text-[#7C3AED]"} font-bold`}>Q</span>
-    <span className={`${darkMode ? "text-white" : "text-black"} font-bold`}>uantis</span>
-    <span className={`${darkMode ? "text-[#9D6FFF]" : "text-[#7C3AED]"} font-bold text-xs translate-y-[-8px] ml-[1px]`}>
-      FX
-    </span>
-  </div>
-)
 
 const LoginForm = () => {
   const navigate = useNavigate()
@@ -134,7 +123,7 @@ const LoginForm = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full mx-auto text-center">
           <div className="mb-6 flex justify-center">
-            <QuantisLogo className="text-3xl" />
+            <Logo width={180} height={60} />
           </div>
 
           <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome Back</h1>
@@ -171,7 +160,7 @@ const LoginForm = () => {
               Welcome Back
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 font-display leading-tight">
-              Log in to <span className="text-[#7C3AED]">Quantis FX</span>
+              Log in to <span className="text-[#7C3AED]">QUANTIS</span>
             </h2>
             <p className="mt-3 text-base text-gray-600">
               Access your account to start trading on global markets.
@@ -205,7 +194,7 @@ const LoginForm = () => {
 
           <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-center mb-6">
-              <QuantisLogo className="text-2xl" />
+              <Logo width={150} height={50} />
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-6 font-display text-center">Log In</h3>
@@ -318,7 +307,7 @@ const LoginForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <div className="flex items-baseline mb-3">
-                <QuantisLogo className="text-xl" darkMode={true} />
+                <Logo className="text-xl" darkMode={true} />
               </div>
               <p className="text-gray-300 text-xs mb-4">
                 Your trusted partner for online trading, providing access to global markets with advanced tools and

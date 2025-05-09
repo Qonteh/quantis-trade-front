@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -13,17 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-// Logo component for consistent styling
-const QuantisLogo = ({ className = "", darkMode = false }) => (
-  <div className={`flex items-baseline ${className}`}>
-    <span className={`${darkMode ? "text-[#9D6FFF]" : "text-[#7C3AED]"} font-bold`}>Q</span>
-    <span className={`${darkMode ? "text-white" : "text-black"} font-bold`}>uantis</span>
-    <span className={`${darkMode ? "text-[#9D6FFF]" : "text-[#7C3AED]"} font-bold text-xs translate-y-[-8px] ml-[1px]`}>
-      FX
-    </span>
-  </div>
-)
+import Logo from "./ui/Logo"
 
 export default function Navigation() {
   const [isMenuOpen, setMenuOpen] = useState(false)
@@ -43,7 +32,7 @@ export default function Navigation() {
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <QuantisLogo />
+            <Logo />
           </Link>
         </div>
         <nav className="hidden md:flex gap-6 text-sm">

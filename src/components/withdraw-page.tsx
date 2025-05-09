@@ -158,17 +158,16 @@ export default function WithdrawPage() {
     }
   }
 
-  const formatCurrency = (value) => {
-    // Convert value to a number regardless of type
-    const numValue = typeof value === 'string' 
-      ? parseFloat(value || '0') 
-      : (typeof value === 'number' ? value : 0);
+  // This is somewhere in the file where the formatCurrency function is defined
+  const formatCurrency = (value: string | number): string => {
+    // Convert to number first if it's a string
+    const numericValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
     
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: selectedCurrency,
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
       minimumFractionDigits: 2,
-    }).format(numValue);
+    }).format(numericValue);
   }
 
   const getSelectedAccount = () => {

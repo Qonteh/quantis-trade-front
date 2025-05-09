@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import Logo from "./ui/Logo"
 
 export default function RegisterForm() {
   const [firstName, setFirstName] = useState("")
@@ -123,6 +124,9 @@ export default function RegisterForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
+        <div className="flex justify-center mb-4">
+          <Logo width={150} height={50} />
+        </div>
         <CardTitle className="text-2xl">Create an Account</CardTitle>
         <CardDescription>Enter your details to create your trading account</CardDescription>
       </CardHeader>
