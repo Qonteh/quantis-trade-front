@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { authApi } from "@/services/api"
 
 export default function RegisterForm() {
   const [firstName, setFirstName] = useState("")
@@ -32,7 +31,7 @@ export default function RegisterForm() {
     e.preventDefault()
     setError("")
 
-    // Validation
+    // Basic client-side validation
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return
@@ -55,38 +54,46 @@ export default function RegisterForm() {
 
     try {
       setIsLoading(true)
-      const response = await authApi.register({
-        firstName,
-        lastName,
-        email,
-        countryCode,
-        phone,
-        password
-      })
+      
+      // Simulate API call delay
+      setTimeout(() => {
+        // Hardcoded successful response - no actual API call
+        const mockResponse = {
+          success: true,
+          token: "mock-jwt-token-for-frontend-demo",
+          user: {
+            id: "user-123",
+            firstName,
+            lastName,
+            email,
+            phone: `${countryCode}${phone}`,
+            isVerified: true, // Auto-verify the user
+            createdAt: new Date().toISOString()
+          }
+        };
 
-      // Store token
-      if (response.token) {
-        localStorage.setItem("token", response.token)
+        // Store mock token and user data
+        localStorage.setItem("token", mockResponse.token);
+        localStorage.setItem("user", JSON.stringify(mockResponse.user));
         
         // Success notification
         toast({
           title: "Registration successful!",
-          description: "Your account has been created. Please verify your email.",
+          description: "Your account has been created. Welcome to Quantis FX!",
           variant: "default",
         })
 
         // Redirect to dashboard
         navigate("/dashboard")
-      } else {
-        setError("Unexpected response from server")
-      }
+      }, 1500);
+      
     } catch (err: any) {
       console.error("Registration error:", err)
-      setError(err.response?.data?.error || "Registration failed. Please try again.")
+      setError("Registration failed. Please try again.")
       
       toast({
         title: "Registration failed",
-        description: err.response?.data?.error || "Please try again later",
+        description: "Please check your information and try again",
         variant: "destructive",
       })
     } finally {
@@ -235,7 +242,7 @@ export default function RegisterForm() {
             </label>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-[#7C3AED] hover:bg-[#6D28D9]" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>

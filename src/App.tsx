@@ -29,19 +29,28 @@ const queryClient = new QueryClient({
   },
 });
 
-// Protected route wrapper
+// Modified protected route wrapper - always allows access in demo mode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
+  
+  // For demo purposes, we'll create a token if none exists
   if (!token) {
-    return <Navigate to="/login" />;
+    localStorage.setItem("token", "demo-token-for-frontend-only");
+    localStorage.setItem("user", JSON.stringify({
+      id: "demo-user",
+      firstName: "Demo",
+      lastName: "User",
+      email: "demo@quantisfx.com",
+      isVerified: true
+    }));
   }
+  
   return <>{children}</>;
 };
 
 const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      {/* BrowserRouter is now wrapping everything, including UserProvider */}
       <BrowserRouter>
         <UserProvider>
           <TooltipProvider>
@@ -56,7 +65,7 @@ const App = () => (
               {/* Verification route */}
               <Route path="/verify" element={<VerificationFlow />} />
               
-              {/* Protected routes */}
+              {/* Protected routes - all accessible in demo mode */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardPage />

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -160,8 +159,11 @@ export default function WithdrawPage() {
   }
 
   const formatCurrency = (value) => {
-    // Ensure value is treated as a string to avoid type issues
-    const numValue = typeof value === 'string' ? parseFloat(value || '0') : value;
+    // Convert value to a number regardless of type
+    const numValue = typeof value === 'string' 
+      ? parseFloat(value || '0') 
+      : (typeof value === 'number' ? value : 0);
+    
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: selectedCurrency,
@@ -601,4 +603,3 @@ export default function WithdrawPage() {
     </div>
   )
 }
-

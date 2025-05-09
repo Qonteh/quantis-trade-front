@@ -65,9 +65,21 @@ const LoginForm = () => {
     setIsSubmitting(true)
     
     try {
-      await login(values.email, values.password);
+      // For frontend demo, accept any valid email/password combination
+      // Simulate successful login with any credentials
       setIsLoading(true);
       setStatusText("Authenticating...");
+      
+      // Store mock token and user data
+      localStorage.setItem("token", "mock-jwt-token-for-frontend-demo");
+      localStorage.setItem("user", JSON.stringify({
+        id: "user-123",
+        firstName: "Demo",
+        lastName: "User",
+        email: values.email,
+        isVerified: true,
+        createdAt: new Date().toISOString()
+      }));
       
       // Simulate loading process
       const interval = setInterval(() => {
@@ -93,7 +105,7 @@ const LoginForm = () => {
       }, 300)
     } catch (error: any) {
       setIsSubmitting(false)
-      setLoginError(error.message || "Login failed. Please check your credentials and try again.")
+      setLoginError("Login failed. Please check your credentials and try again.")
     }
   }
 
