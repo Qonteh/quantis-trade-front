@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -75,7 +74,6 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
     { icon: <CreditCard className="w-4 h-4" />, label: 'Withdraw', to: '/withdraw' },
     { icon: <CreditCard className="w-4 h-4" />, label: 'Transfer', to: '/transfer' },
     { icon: <Wallet className="w-4 h-4" />, label: 'Wallet', to: '/wallet' },
-    { icon: <BarChart3 className="w-4 h-4" />, label: 'Trade', to: '/trade' },
     { icon: <Layers className="w-4 h-4" />, label: 'Platform', to: '/platform' },
     { icon: <Users className="w-4 h-4" />, label: 'Refer', to: '/refer' },
     { icon: <Settings className="w-4 h-4" />, label: 'Settings', to: '/settings' },
@@ -162,9 +160,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between px-4 h-16 border-b border-[#3d2a87]">
               <div className="flex items-baseline">
-                <span className="text-[#9D6FFF] font-bold text-xl">Q</span>
-                <span className="text-white font-bold text-xl">uantis</span>
-                <span className="text-[#9D6FFF] font-bold text-xs translate-y-[-4px] ml-[1px]">FX</span>
+                <Logo darkMode={true} width={100} height={32} />
               </div>
               <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="text-gray-300">
                 <ChevronLeft className="h-4 w-4" />
@@ -256,11 +252,7 @@ const DashboardSidebar = ({ isMobile = false }: DashboardSidebarProps) => {
     >
       <div className="flex items-center justify-between h-16 border-b border-[#3d2a87] px-4">
         {!isCollapsed && (
-          <div className="flex items-baseline">
-            <span className="text-[#9D6FFF] font-bold text-xl">Q</span>
-            <span className="text-white font-bold text-xl">uantis</span>
-            <span className="text-[#9D6FFF] font-bold text-xs translate-y-[-4px] ml-[1px]">FX</span>
-          </div>
+          <Logo darkMode={true} width={100} height={32} />
         )}
         <Button 
           variant="ghost" 

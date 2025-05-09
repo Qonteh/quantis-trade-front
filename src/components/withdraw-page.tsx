@@ -159,15 +159,13 @@ export default function WithdrawPage() {
   }
 
   // This is somewhere in the file where the formatCurrency function is defined
-  const formatCurrency = (value: string | number): string => {
-    // Convert to number first if it's a string
-    const numericValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
-    
+  const formatCurrency = (amount: number | string) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) || 0 : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2,
-    }).format(numericValue);
+      minimumFractionDigits: 2
+    }).format(numericAmount);
   }
 
   const getSelectedAccount = () => {

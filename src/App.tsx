@@ -15,7 +15,6 @@ import DepositPage from "./components/deposit-page";
 import DashboardPage from "./components/dashboard-page";
 import WithdrawPage from "./components/withdraw-page";
 import WalletPage from "./components/wallet-page";
-import TradePage from "./components/trade-page";
 import PlatformPage from "./components/platform-page";
 import ReferPage from "./components/refer-page";
 import TransferPage from "./components/transfer-page";
@@ -40,7 +39,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       id: "demo-user",
       firstName: "Demo",
       lastName: "User",
-      email: "demo@quantisfx.com",
+      email: "demo@quantis.com",
       isVerified: true
     }));
   }
@@ -86,11 +85,6 @@ const App = () => (
                   <WalletPage />
                 </ProtectedRoute>
               } />
-              <Route path="/trade" element={
-                <ProtectedRoute>
-                  <TradePage />
-                </ProtectedRoute>
-              } />
               <Route path="/platform" element={
                 <ProtectedRoute>
                   <PlatformPage />
@@ -104,6 +98,11 @@ const App = () => (
               <Route path="/transfer" element={
                 <ProtectedRoute>
                   <TransferPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <DashboardPage />
                 </ProtectedRoute>
               } />
               
