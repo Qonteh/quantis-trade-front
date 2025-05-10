@@ -168,7 +168,7 @@ export const MT5Service = {
   }
 };
 
-export const createMTAccount = async (platform: 'mt4' | 'mt5', userData: any) => {
+const createMTAccount = async (platform: 'mt4' | 'mt5', userData: any) => {
   try {
     console.log(`Mock creation of ${platform} account`, userData);
     // Simulate API delay
@@ -185,8 +185,3 @@ export const createMTAccount = async (platform: 'mt4' | 'mt5', userData: any) =>
   }
 };
 
-export default {
-  MT4Service,
-  MT5Service,
-  createMTAccount
-};

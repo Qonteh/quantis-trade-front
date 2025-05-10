@@ -22,7 +22,7 @@ export interface User {
   mt5Accounts?: MTAccount[];
 }
 
-export interface MTAccount {
+interface MTAccount {
   accountId: string;
   password?: string;
   investorPassword?: string;
@@ -46,12 +46,12 @@ export interface UserContextType {
   updateProfile: (userData: any) => Promise<any>;
 }
 
-export interface WalletBalance {
+interface WalletBalance {
   walletBalance: number;
   demoBalance: number;
 }
 
-export interface Transaction {
+interface Transaction {
   id: number;
   userId: number;
   type: string;
@@ -64,7 +64,7 @@ export interface Transaction {
   metadata?: string;
 }
 
-export interface AccountDetails {
+interface AccountDetails {
   leverage: string;
   accountType: string;
   tradingServer: string;
@@ -72,7 +72,7 @@ export interface AccountDetails {
   demoBalance: number;
 }
 
-export interface MTServerStatus {
+interface MTServerStatus {
   server: string;
   status: 'online' | 'offline' | 'maintenance';
   uptime: number;
