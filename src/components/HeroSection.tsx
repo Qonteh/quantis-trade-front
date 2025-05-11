@@ -1,8 +1,27 @@
+"use client"
+
 import { Link } from "react-router-dom"
-import { ArrowRight, Zap, ShieldCheck, Clock } from "lucide-react"
+import { ArrowRight, Zap, ShieldCheck, Clock, Copy, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const HeroSection = () => {
+  // Function to handle URL hash changes
+  // useEffect(() => {
+  //   // If the URL has a #copy-trading hash, click the tab and scroll to it
+  //   if (window.location.hash === "#copy-trading") {
+  //     const copyTradingTab = document.querySelector('[value="copytrading"]')
+  //     if (copyTradingTab) {
+  //       ;(copyTradingTab as HTMLElement).click()
+  //       setTimeout(() => {
+  //         const section = document.getElementById("copy-trading-section")
+  //         if (section) {
+  //           section.scrollIntoView({ behavior: "smooth" })
+  //         }
+  //       }, 100)
+  //     }
+  //   }
+  // }, [])
+
   return (
     <div className="relative pt-24 overflow-hidden bg-gradient-to-b from-[#0F0F1E] via-[#1A1A2E] to-[#1F1F35]">
       {/* Enhanced decorative elements */}
@@ -35,6 +54,49 @@ const HeroSection = () => {
               Access over 10,000 instruments across forex, stocks, commodities, and cryptocurrencies with tight spreads
               and low commissions.
             </p>
+
+            {/* Featured Copy Trading Button - DIRECT TAB SWITCHING VERSION */}
+            <div
+              onClick={() => {
+                // Find the copy trading tab and click it
+                const copyTradingTab = document.querySelector('[value="copytrading"]')
+                if (copyTradingTab) {
+                  // Force click the tab to ensure it activates
+                  ;(copyTradingTab as HTMLElement).click()
+
+                  // Give the tab time to activate and render content
+                  setTimeout(() => {
+                    // Find the copy trading section by ID
+                    const section = document.getElementById("copy-trading")
+                    if (section) {
+                      // Scroll to the section with offset for header
+                      window.scrollTo({
+                        top: section.offsetTop - 100,
+                        behavior: "smooth",
+                      })
+                    }
+                  }, 200) // Increased timeout for better reliability
+                }
+              }}
+              className="mt-8 p-4 bg-gradient-to-r from-purple-900/40 to-purple-700/40 backdrop-blur-md rounded-2xl border border-purple-500/30 shadow-xl shadow-purple-500/10 transform hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+            >
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="bg-purple-600/30 p-3 rounded-xl group-hover:bg-purple-600/50 transition-all duration-300">
+                    <TrendingUp className="h-8 w-8 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Copy Trading</h3>
+                    <p className="text-gray-300 text-sm">Automatically copy expert traders</p>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 font-medium transition-all duration-300 group-hover:shadow-purple-500/30">
+                  <Copy className="h-5 w-5" />
+                  Explore Copy Trading
+                </div>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pt-6">
               <Link to="/register">
                 <Button className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-8 py-6 text-lg rounded-xl shadow-xl transition-all duration-300">

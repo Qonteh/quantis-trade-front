@@ -34,7 +34,7 @@ export default function Navigation() {
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
             {/* Increased logo size */}
-            <Logo height={87} width={120} />
+            <Logo height={81} width={120} />
           </Link>
         </div>
         <nav className="hidden md:flex gap-6 text-sm">
