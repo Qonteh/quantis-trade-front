@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Menu, X, User, LogIn } from "lucide-react"
+import { Menu, X, User, LogIn } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -31,10 +30,11 @@ export default function Navigation() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="flex h-14 items-center justify-between px-4 md:px-6">
+      <div className="flex h-20 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
-            <Logo height={32} width={100} />
+            {/* Increased logo size */}
+            <Logo height={87} width={120} />
           </Link>
         </div>
         <nav className="hidden md:flex gap-6 text-sm">
@@ -82,12 +82,14 @@ export default function Navigation() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="bg-[#F3F4F6] text-[#374151] border-[#D1D5DB]">
                   Login
                 </Button>
               </Link>
               <Link to="/register">
-                <Button size="sm">Register</Button>
+                <Button size="sm" className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white">
+                  Register
+                </Button>
               </Link>
             </>
           )}
@@ -138,7 +140,7 @@ export default function Navigation() {
                 <div className="border-t pt-2 mt-2"></div>
                 <Link
                   to="/login"
-                  className="flex items-center gap-2 font-medium py-2 px-3 hover:bg-gray-100 rounded-md"
+                  className="flex items-center gap-2 font-medium py-2 px-3 bg-[#F3F4F6] text-[#374151] rounded-md"
                   onClick={toggleMenu}
                 >
                   <LogIn className="h-4 w-4" /> Login
