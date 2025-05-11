@@ -123,7 +123,7 @@ const LoginForm = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full mx-auto text-center">
           <div className="mb-6 flex justify-center">
-            <Logo width={180} height={60} />
+            <Logo width={180} height={100} />
           </div>
 
           <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome Back</h1>
@@ -194,7 +194,7 @@ const LoginForm = () => {
 
           <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-center mb-6">
-              <Logo width={150} height={50} />
+              <Logo width={150} height={70} />
             </div>
 
             <h3 className="text-xl font-bold text-gray-900 mb-6 font-display text-center">Log In</h3>
@@ -306,9 +306,10 @@ const LoginForm = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
-              <div className="flex items-baseline mb-3">
-                <Logo className="text-xl" darkMode={true} />
-              </div>
+            <div className="flex items-baseline mb-3">
+  <img src="logo.jpg" alt="Logo" className="h-12" />
+</div>
+
               <p className="text-gray-300 text-xs mb-4">
                 Your trusted partner for online trading, providing access to global markets with advanced tools and
                 exceptional support.
@@ -378,7 +379,7 @@ const LoginForm = () => {
             <div>
               <h4 className="font-medium text-white mb-3 text-sm">Contact</h4>
               <p className="text-gray-300 text-xs mb-1">1234 Trading Street, Financial District, 10001</p>
-              <p className="text-gray-300 text-xs mb-1">+1 (800) 123-4567</p>
+              <p className="text-gray-300 text-xs mb-1">+255  123-4567</p>
               <p className="text-gray-300 text-xs mb-3">info@quantis.com</p>
 
               <h4 className="font-medium text-white mb-2 text-sm">Trading Hours</h4>
