@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -59,7 +58,7 @@ const MarketTicker: React.FC<MarketTickerProps> = ({ initialData }) => {
   }, [marketData]);
   
   return (
-    <div className="flex items-center space-x-4 overflow-auto pb-1 md:pb-0 whitespace-nowrap">
+    <div className="bg-[#2D1B69] text-white py-2 px-4 flex items-center space-x-4 overflow-auto pb-1 md:pb-0 whitespace-nowrap">
       {marketData.map((item, index) => (
         <div key={index} className="text-[10px] group cursor-pointer">
           <div className="flex items-center">

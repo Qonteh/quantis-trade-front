@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// Import components with default imports
 import DashboardHeader from "@/components/dashboard/dashboard-header"
 import DashboardStats from "@/components/dashboard/dashboard-stats"
 import MarketTicker from "@/components/dashboard/market-ticker"
@@ -21,7 +19,7 @@ import SupportChat from "@/components/dashboard/support-chat"
 import { tradingApi } from "@/services/api"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/context/UserContext"
-import DashboardSidebar from "./dashboard-sidebar" // Add back sidebar import
+import DashboardSidebar from "./dashboard-sidebar"
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -122,14 +120,13 @@ export default function DashboardPage() {
 
   return (
     <div className="flex">
-      {/* Add sidebar back */}
       <DashboardSidebar isMobile={isMobile} />
       
       <div className="flex flex-col min-h-screen w-full md:ml-64 transition-all duration-300">
         <DashboardHeader marketData={marketData} isMobile={isMobile} />
         <MarketTicker initialData={marketData} />
 
-        <main className="flex-1 p-4 space-y-4 md:p-6">
+        <main className="flex-1 p-4 space-y-4 md:p-6 bg-gray-50">
           <div className="mx-auto max-w-7xl">
             <DashboardStats 
               equity={accountStats.equity} 
@@ -140,7 +137,7 @@ export default function DashboardPage() {
 
             <div className="grid gap-4 mt-8">
               <div className="grid gap-4 md:grid-cols-3">
-                <Card className="md:col-span-2">
+                <Card className="md:col-span-2 border-0 shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle>Trading Accounts</CardTitle>
@@ -213,9 +210,9 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle>Account Actions</CardTitle>
+                    <CardTitle>Quick Actions</CardTitle>
                     <CardDescription>Manage your funds</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
@@ -233,7 +230,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <Card>
+                <Card className="border-0 shadow-sm">
                   <CardHeader className="pb-2">
                     <CardTitle>Verification Status</CardTitle>
                     <CardDescription>Complete your profile</CardDescription>
@@ -243,7 +240,7 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="md:col-span-2">
+                <Card className="md:col-span-2 border-0 shadow-sm">
                   <CardHeader className="pb-2">
                     <CardTitle>Market Overview</CardTitle>
                     <CardDescription>Latest market updates</CardDescription>
