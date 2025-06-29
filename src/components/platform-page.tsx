@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -370,8 +371,7 @@ const PlatformPage: React.FC = () => {
                                 </div>
                                 <Progress
                                   value={server.uptime}
-                                  className="h-1"
-                                  indicatorClassName={server.uptime > 95 ? "bg-green-500" : "bg-amber-500"}
+                                  className={`h-1 ${server.uptime > 95 ? '[&>div]:bg-green-500' : '[&>div]:bg-amber-500'}`}
                                 />
                               </div>
                             </div>
@@ -422,8 +422,7 @@ const PlatformPage: React.FC = () => {
                                 </div>
                                 <Progress
                                   value={server.uptime}
-                                  className="h-1"
-                                  indicatorClassName={server.uptime > 95 ? "bg-green-500" : "bg-amber-500"}
+                                  className={`h-1 ${server.uptime > 95 ? '[&>div]:bg-green-500' : '[&>div]:bg-amber-500'}`}
                                 />
                               </div>
                             </div>

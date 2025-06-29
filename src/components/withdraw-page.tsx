@@ -181,7 +181,7 @@ export default function WithdrawPage() {
             </div>
 
             {!isFullyVerified && (
-              <Alert variant="warning" className="mb-5 bg-purple-50 border-purple-200">
+              <Alert variant="destructive" className="mb-5 bg-purple-50 border-purple-200">
                 <Info className="h-4 w-4 text-[#5a2ca0]" />
                 <AlertTitle className="text-sm text-[#5a2ca0]">Withdrawal Limit</AlertTitle>
                 <AlertDescription className="text-xs text-[#5a2ca0]">
