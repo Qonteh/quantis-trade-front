@@ -18,6 +18,7 @@ import WalletPage from "./components/wallet-page";
 import PlatformPage from "./components/platform-page";
 import ReferPage from "./components/refer-page";
 import TransferPage from "./components/transfer-page";
+import AdminDashboard from "./components/admin-dashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Admin route wrapper
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // Check if user is admin (you can modify this logic)
+  if (user.role !== 'admin' && user.email !== 'admin@quantis.com') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -63,6 +76,15 @@ const App = () => (
               
               {/* Verification route */}
               <Route path="/verify" element={<VerificationFlow />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                </ProtectedRoute>
+              } />
               
               {/* Protected routes - all accessible in demo mode */}
               <Route path="/dashboard" element={
