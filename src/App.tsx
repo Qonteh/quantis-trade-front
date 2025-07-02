@@ -19,6 +19,7 @@ import PlatformPage from "./components/platform-page";
 import ReferPage from "./components/refer-page";
 import TransferPage from "./components/transfer-page";
 import AdminDashboard from "./components/admin-dashboard";
+import AdminUsersPage from "./components/admin-users-page";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,6 +89,13 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminRoute>
                     <AdminDashboard />
+                  </AdminRoute>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute>
+                  <AdminRoute>
+                    <AdminUsersPage />
                   </AdminRoute>
                 </ProtectedRoute>
               } />

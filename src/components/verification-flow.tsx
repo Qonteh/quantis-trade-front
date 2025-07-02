@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Circle, Check, Upload, X, User, File, FileText, IdCard } from "lucide-react";
 import Logo from "./ui/Logo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 // Sample list of countries for nationality selection
 const countries = [
@@ -51,7 +51,7 @@ const VerificationFlow: React.FC = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, verifyEmail } = useAuth();
+  const { user, verifyEmail, resendVerification } = useAuth();
 
   // For displaying a loading indicator with the brand name
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
@@ -88,8 +88,7 @@ const VerificationFlow: React.FC = () => {
     }
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await verifyEmail(user.id.toString(), code);
       
       toast({
         title: "Email verified",
@@ -103,6 +102,24 @@ const VerificationFlow: React.FC = () => {
     } catch (err: any) {
       setError(err?.message || "Invalid verification code");
       setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!user?.email) {
+      setError("User email is missing.");
+      return;
+    }
+    
+    try {
+      await resendVerification(user.email);
+      toast({
+        title: "Code sent",
+        description: "A new verification code has been sent to your email",
+        variant: "default",
+      });
+    } catch (err: any) {
+      setError(err?.message || "Failed to resend verification code");
     }
   };
 
@@ -147,18 +164,22 @@ const VerificationFlow: React.FC = () => {
         variant: "default",
       });
       
-      // Simulate completed verification
+      // Show completion message and redirect to login
       if (emailVerified && personalInfoVerified) {
         toast({
           title: "Verification Complete",
-          description: "Your account has been fully verified",
+          description: "Your account has been fully verified. Redirecting to login...",
           variant: "default",
         });
         
-        // Redirect to dashboard after completing all verification steps
+        // Redirect to login page after completing all verification steps
         setTimeout(() => {
-          navigate("/dashboard");
-        }, 2000);
+          navigate("/login", { 
+            state: { 
+              message: "Account verified successfully! Please log in to continue." 
+            }
+          });
+        }, 3000);
       }
     } catch (error) {
       setError("Failed to upload documents. Please try again.");
@@ -179,7 +200,7 @@ const VerificationFlow: React.FC = () => {
         </div>
         <div className="h-2 bg-gray-200 rounded-full">
           <div 
-            className="h-2 bg-[#7C3AED] rounded-full" 
+            className="h-2 bg-[#7C3AED] rounded-full transition-all duration-500" 
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -194,7 +215,7 @@ const VerificationFlow: React.FC = () => {
           <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
           <h3 className="font-medium text-green-800">Verification Complete!</h3>
           <p className="text-sm text-green-600 mt-1">
-            You will be redirected to the dashboard shortly...
+            You will be redirected to the login page shortly...
           </p>
         </div>
       );
@@ -260,29 +281,44 @@ const VerificationFlow: React.FC = () => {
             <div className="mb-4">
               <h3 className="text-lg font-medium mb-2">Verify Your Email</h3>
               <p className="text-gray-600 text-sm mb-4">
-                We've sent a 6-digit verification code to your email address. Please enter it below to verify your account.
+                We've sent a 6-digit verification code to <strong>{user?.email}</strong>. Please enter it below to verify your account.
               </p>
               
               {!emailVerified ? (
                 <form onSubmit={handleSubmitCode} className="space-y-4">
                   <div>
-                    <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="verification-code" className="block text-sm font-medium text-gray-700 mb-3">
                       Verification Code
                     </label>
-                    <Input
-                      id="verification-code"
-                      type="text"
-                      placeholder="Enter 6-digit code"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      required
-                      maxLength={6}
-                      className="text-center text-lg tracking-widest"
-                    />
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={code}
+                        onChange={(value) => setCode(value)}
+                        className="gap-2"
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
                   </div>
                   
                   <div className="text-center text-sm text-gray-500">
-                    <p>Didn't receive the code? <button type="button" className="text-[#7C3AED] hover:underline">Resend code</button></p>
+                    <p>Didn't receive the code? 
+                      <button 
+                        type="button" 
+                        onClick={handleResendCode}
+                        className="text-[#7C3AED] hover:underline ml-1"
+                      >
+                        Resend code
+                      </button>
+                    </p>
                   </div>
                   
                   {error && <p className="text-red-500 text-sm text-center">{error}</p>}

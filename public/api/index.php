@@ -74,6 +74,50 @@ function generateVerificationCode() {
     return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 }
 
+// Helper function to send email via cURL (simple SMTP service)
+function sendVerificationEmail($email, $firstName, $verificationCode) {
+    // For development, we'll just log the email
+    // In production, integrate with a real email service like SendGrid, Mailgun, etc.
+    error_log("VERIFICATION EMAIL for $email: Your verification code is: $verificationCode");
+    
+    // Simulate email sending success
+    return true;
+    
+    // Example for real email service integration:
+    /*
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://api.sendgrid.com/v3/mail/send',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode([
+            'personalizations' => [[
+                'to' => [['email' => $email, 'name' => $firstName]]
+            ]],
+            'from' => ['email' => 'noreply@quantisfx.com', 'name' => 'Quantis FX'],
+            'subject' => 'Verify Your Quantis FX Account',
+            'content' => [[
+                'type' => 'text/html',
+                'value' => "<h2>Hi $firstName,</h2><p>Your verification code is: <strong>$verificationCode</strong></p>"
+            ]]
+        ]),
+        CURLOPT_HTTPHEADER => array(
+            'Authorization: Bearer YOUR_SENDGRID_API_KEY',
+            'Content-Type: application/json'
+        ),
+    ));
+    
+    $response = curl_exec($curl);
+    curl_close($curl);
+    return $response !== false;
+    */
+}
+
 // Route the API request
 try {
     if (strpos($route, 'auth/') === 0) {
@@ -148,6 +192,9 @@ try {
                     error_log("Failed to create verification code: " . json_encode($stmt->errorInfo()));
                 }
 
+                // Send verification email
+                $emailSent = sendVerificationEmail($data['email'], $data['firstName'], $verificationCode);
+                
                 // Generate token
                 $token = generateToken($userId);
 
@@ -244,6 +291,46 @@ try {
             echo json_encode([
                 "success" => true,
                 "message" => "Email verified successfully"
+            ]);
+
+        } elseif ($route === 'auth/resend-verification' && $method === 'POST') {
+            // Resend verification code
+            if (!isset($data['email'])) {
+                throw new Exception("Missing email");
+            }
+
+            // Find user by email
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$data['email']]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                throw new Exception("User not found");
+            }
+
+            if ($user['is_verified']) {
+                throw new Exception("User is already verified");
+            }
+
+            // Generate new verification code
+            $verificationCode = generateVerificationCode();
+            $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60)); // 15 minutes
+
+            // Insert new verification code (previous ones will be ignored as expired)
+            $stmt = $pdo->prepare("
+                INSERT INTO verification_codes (user_id, code, type, expires_at) 
+                VALUES (?, ?, 'email', ?)
+            ");
+            $stmt->execute([$user['id'], $verificationCode, $expiresAt]);
+
+            // Send verification email
+            $emailSent = sendVerificationEmail($user['email'], $user['first_name'], $verificationCode);
+            
+            error_log("Resent verification code for {$user['email']}: {$verificationCode}");
+
+            echo json_encode([
+                "success" => true,
+                "message" => "Verification code sent successfully"
             ]);
 
         } elseif ($route === 'auth/me' && $method === 'GET') {
