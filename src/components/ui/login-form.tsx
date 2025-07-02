@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Loader2, Shield, Globe, Clock, Users, Lock } from 'lucide-react'
 import { useAuth } from "@/context/UserContext"
+import { useAuthHelpers } from "@/services/authHelpers"
 import Logo from "../ui/Logo"
 
 const loginFormSchema = z.object({
@@ -25,12 +27,10 @@ const loginFormSchema = z.object({
 
 const LoginForm = () => {
   const navigate = useNavigate()
-  const { login, isAuthenticated, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { login } = useAuthHelpers(navigate)
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [statusText, setStatusText] = useState("")
   const [loginError, setLoginError] = useState("")
 
   // If already authenticated, redirect to dashboard
@@ -54,47 +54,12 @@ const LoginForm = () => {
     setIsSubmitting(true)
     
     try {
-      // For frontend demo, accept any valid email/password combination
-      // Simulate successful login with any credentials
-      setIsLoading(true);
-      setStatusText("Authenticating...");
-      
-      // Store mock token and user data
-      localStorage.setItem("token", "mock-jwt-token-for-frontend-demo");
-      localStorage.setItem("user", JSON.stringify({
-        id: "user-123",
-        firstName: "Demo",
-        lastName: "User",
-        email: values.email,
-        isVerified: true,
-        createdAt: new Date().toISOString()
-      }));
-      
-      // Simulate loading process
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval)
-            navigate("/dashboard")
-            return 100
-          }
-          
-          const newProgress = prev + 10
-          
-          if (newProgress === 30) {
-            setStatusText("Fetching account information...")
-          } else if (newProgress === 60) {
-            setStatusText("Loading your trading dashboard...")
-          } else if (newProgress >= 90) {
-            setStatusText("Almost there...")
-          }
-          
-          return newProgress
-        })
-      }, 300)
+      // Use real authentication
+      await login(values.email, values.password)
+      // Navigation will be handled by the login function
     } catch (error: any) {
       setIsSubmitting(false)
-      setLoginError("Login failed. Please check your credentials and try again.")
+      setLoginError(error.message || "Login failed. Please check your credentials and try again.")
     }
   }
 
@@ -116,36 +81,6 @@ const LoginForm = () => {
       text: "24/5 customer support in multiple languages",
     },
   ]
-
-  // Show loading screen if isLoading is true
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full mx-auto text-center">
-          <div className="mb-6 flex justify-center">
-            <Logo width={180} height={100} />
-          </div>
-
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-sm text-gray-600 mb-6">{statusText}</p>
-
-          <div className="relative pt-1 mb-6">
-            <div className="overflow-hidden h-1.5 text-xs flex rounded-full bg-gray-200">
-              <div
-                style={{ width: `${progress}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#7C3AED] transition-all duration-300 ease-in-out"
-              ></div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 text-[#7C3AED] animate-spin mr-3" />
-            <span className="text-sm text-gray-700 font-medium">{Math.round(progress)}%</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // Show login form
   return (

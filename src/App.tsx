@@ -29,30 +29,32 @@ const queryClient = new QueryClient({
   },
 });
 
-// Modified protected route wrapper - always allows access in demo mode
+// Protected route wrapper - checks for real authentication
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
   
-  // For demo purposes, we'll create a token if none exists
-  if (!token) {
-    localStorage.setItem("token", "demo-token-for-frontend-only");
-    localStorage.setItem("user", JSON.stringify({
-      id: "demo-user",
-      firstName: "Demo",
-      lastName: "User",
-      email: "demo@quantis.com",
-      isVerified: true
-    }));
+  // Check if user is actually authenticated with valid token and user data
+  if (!token || !user || token === 'demo-token-for-frontend-only') {
+    return <Navigate to="/login" replace />;
   }
   
-  return <>{children}</>;
+  try {
+    JSON.parse(user); // Validate user data is parseable
+    return <>{children}</>;
+  } catch {
+    // If user data is corrupted, redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return <Navigate to="/login" replace />;
+  }
 };
 
 // Admin route wrapper
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   
-  // Check if user is admin (you can modify this logic)
+  // Check if user is admin
   if (user.role !== 'admin' && user.email !== 'admin@quantis.com') {
     return <Navigate to="/dashboard" replace />;
   }
@@ -86,7 +88,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Protected routes - all accessible in demo mode */}
+              {/* Protected routes - require authentication */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardPage />

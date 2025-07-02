@@ -37,6 +37,35 @@ function generateToken($userId) {
     return $base64Header . "." . $base64Payload . "." . $base64Signature;
 }
 
+// Helper function to validate JWT token
+function validateToken($token) {
+    if (!$token) return false;
+    
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) return false;
+    
+    $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+    
+    if (!$payload || !isset($payload['exp']) || $payload['exp'] < time()) {
+        return false;
+    }
+    
+    return $payload;
+}
+
+// Helper function to get current user from token
+function getCurrentUser($pdo) {
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $token = str_replace('Bearer ', '', $authHeader);
+    
+    $payload = validateToken($token);
+    if (!$payload) return null;
+    
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$payload['user_id']]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 // Helper function to generate verification code
 function generateVerificationCode() {
     return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -52,6 +81,16 @@ try {
                 throw new Exception("Missing required fields");
             }
 
+            // Validate email format
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Invalid email format");
+            }
+
+            // Validate password strength
+            if (strlen($data['password']) < 6) {
+                throw new Exception("Password must be at least 6 characters long");
+            }
+
             // Check if user already exists
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->execute([$data['email']]);
@@ -64,8 +103,8 @@ try {
 
             // Insert new user
             $stmt = $pdo->prepare("
-                INSERT INTO users (first_name, last_name, email, phone, country_code, password_hash) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO users (first_name, last_name, email, phone, country_code, password_hash, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
             ");
             $stmt->execute([
                 $data['firstName'],
@@ -91,8 +130,7 @@ try {
             // Generate token
             $token = generateToken($userId);
 
-            // Send verification email (you'll need to implement this)
-            // For now, we'll just log the code
+            // Log the verification code for development
             error_log("Verification code for {$data['email']}: {$verificationCode}");
 
             echo json_encode([
@@ -127,6 +165,10 @@ try {
             if (!$user || !password_verify($data['password'], $user['password_hash'])) {
                 throw new Exception("Invalid credentials");
             }
+
+            // Update last login time
+            $stmt = $pdo->prepare("UPDATE users SET updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$user['id']]);
 
             // Generate token
             $token = generateToken($user['id']);
@@ -170,7 +212,7 @@ try {
             $stmt->execute([$verificationCode['id']]);
 
             // Update user as verified
-            $stmt = $pdo->prepare("UPDATE users SET is_verified = TRUE WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE users SET is_verified = TRUE, account_status = 'active' WHERE id = ?");
             $stmt->execute([$data['userId']]);
 
             echo json_encode([
@@ -178,11 +220,40 @@ try {
                 "message" => "Email verified successfully"
             ]);
 
+        } elseif ($route === 'auth/me' && $method === 'GET') {
+            // Get current user
+            $user = getCurrentUser($pdo);
+            if (!$user) {
+                throw new Exception("Invalid or expired token");
+            }
+
+            echo json_encode([
+                "success" => true,
+                "data" => [
+                    "id" => $user['id'],
+                    "email" => $user['email'],
+                    "firstName" => $user['first_name'],
+                    "lastName" => $user['last_name'],
+                    "isVerified" => (bool)$user['is_verified'],
+                    "countryCode" => $user['country_code'],
+                    "phone" => $user['phone'],
+                    "role" => $user['role'],
+                    "walletBalance" => (float)$user['wallet_balance'],
+                    "demoBalance" => (float)$user['demo_balance']
+                ]
+            ]);
+
         } else {
             throw new Exception("Invalid auth endpoint");
         }
     } elseif (strpos($route, 'admin/') === 0) {
-        // Admin routes
+        // Admin routes - require admin authentication
+        $user = getCurrentUser($pdo);
+        if (!$user || $user['role'] !== 'admin') {
+            http_response_code(403);
+            throw new Exception("Admin access required");
+        }
+
         if ($route === 'admin/users' && $method === 'GET') {
             // Get all users (admin only)
             $stmt = $pdo->prepare("
@@ -206,7 +277,7 @@ try {
                 throw new Exception("Missing userId");
             }
 
-            $stmt = $pdo->prepare("UPDATE users SET is_verified = TRUE WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE users SET is_verified = TRUE, account_status = 'active' WHERE id = ?");
             $stmt->execute([$data['userId']]);
 
             echo json_encode([
@@ -214,26 +285,67 @@ try {
                 "message" => "User verified successfully"
             ]);
 
+        } elseif ($route === 'admin/stats' && $method === 'GET') {
+            // Get admin statistics
+            $stmt = $pdo->prepare("
+                SELECT 
+                    COUNT(*) as total_users,
+                    SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) as verified_users,
+                    SUM(wallet_balance) as total_balance,
+                    SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as new_today
+                FROM users
+            ");
+            $stmt->execute();
+            $stats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                "success" => true,
+                "data" => $stats
+            ]);
+
         } else {
             throw new Exception("Invalid admin endpoint");
         }
     } elseif (strpos($route, 'trading/') === 0) {
-        // Trading routes
+        // Trading routes - require authentication
+        $user = getCurrentUser($pdo);
+        if (!$user) {
+            http_response_code(401);
+            throw new Exception("Authentication required");
+        }
+
         if ($route === 'trading/balance' && $method === 'GET') {
             echo json_encode([
                 "success" => true,
                 "data" => [
-                    "walletBalance" => 1000,
-                    "demoBalance" => 10000
+                    "walletBalance" => (float)$user['wallet_balance'],
+                    "demoBalance" => (float)$user['demo_balance']
                 ]
             ]);
         } elseif ($route === 'trading/deposit' && $method === 'POST') {
+            $amount = $data['amount'] ?? 0;
+            if ($amount <= 0) {
+                throw new Exception("Invalid deposit amount");
+            }
+
+            // Update user balance
+            $stmt = $pdo->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?");
+            $stmt->execute([$amount, $user['id']]);
+
+            // Record transaction
+            $stmt = $pdo->prepare("
+                INSERT INTO transactions (user_id, type, amount, status, reference, created_at) 
+                VALUES (?, 'deposit', ?, 'completed', ?, NOW())
+            ");
+            $reference = 'DEP_' . time() . '_' . rand(1000, 9999);
+            $stmt->execute([$user['id'], $amount, $reference]);
+
             echo json_encode([
                 "success" => true,
                 "message" => "Deposit successful",
                 "data" => [
-                    "walletBalance" => 1000 + ($data['amount'] ?? 0),
-                    "transactionId" => "txn_" . rand(10000, 99999)
+                    "walletBalance" => (float)$user['wallet_balance'] + $amount,
+                    "transactionId" => $reference
                 ]
             ]);
         } else {
