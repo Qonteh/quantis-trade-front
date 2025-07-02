@@ -26,6 +26,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 $requestBody = file_get_contents('php://input');
 $data = json_decode($requestBody, true);
 
+// Log incoming requests for debugging
+error_log("API Request - Route: $route, Method: $method, Data: " . json_encode($data));
+
 // Helper function to generate JWT token (simple version)
 function generateToken($userId) {
     $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
@@ -76,18 +79,23 @@ try {
     if (strpos($route, 'auth/') === 0) {
         // Auth routes
         if ($route === 'auth/register' && $method === 'POST') {
+            error_log("Registration attempt started");
+            
             // Validate required fields
             if (!isset($data['firstName'], $data['lastName'], $data['email'], $data['password'])) {
+                error_log("Missing required fields: " . json_encode($data));
                 throw new Exception("Missing required fields");
             }
 
             // Validate email format
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                error_log("Invalid email format: " . $data['email']);
                 throw new Exception("Invalid email format");
             }
 
             // Validate password strength
             if (strlen($data['password']) < 6) {
+                error_log("Password too short");
                 throw new Exception("Password must be at least 6 characters long");
             }
 
@@ -95,61 +103,79 @@ try {
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->execute([$data['email']]);
             if ($stmt->fetch()) {
+                error_log("User already exists: " . $data['email']);
                 throw new Exception("User already exists with this email");
             }
 
             // Hash password
             $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+            error_log("Password hashed successfully");
 
             // Insert new user
-            $stmt = $pdo->prepare("
-                INSERT INTO users (first_name, last_name, email, phone, country_code, password_hash, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, NOW())
-            ");
-            $stmt->execute([
-                $data['firstName'],
-                $data['lastName'],
-                $data['email'],
-                $data['phone'] ?? '',
-                $data['countryCode'] ?? '',
-                $passwordHash
-            ]);
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO users (first_name, last_name, email, phone, country_code, password_hash, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, NOW())
+                ");
+                $result = $stmt->execute([
+                    $data['firstName'],
+                    $data['lastName'],
+                    $data['email'],
+                    $data['phone'] ?? '',
+                    $data['countryCode'] ?? '',
+                    $passwordHash
+                ]);
+                
+                if (!$result) {
+                    error_log("Failed to insert user: " . json_encode($stmt->errorInfo()));
+                    throw new Exception("Failed to create user account");
+                }
 
-            $userId = $pdo->lastInsertId();
+                $userId = $pdo->lastInsertId();
+                error_log("User created successfully with ID: " . $userId);
 
-            // Generate verification code
-            $verificationCode = generateVerificationCode();
-            $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60)); // 15 minutes
+                // Generate verification code
+                $verificationCode = generateVerificationCode();
+                $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60)); // 15 minutes
 
-            $stmt = $pdo->prepare("
-                INSERT INTO verification_codes (user_id, code, type, expires_at) 
-                VALUES (?, ?, 'email', ?)
-            ");
-            $stmt->execute([$userId, $verificationCode, $expiresAt]);
+                $stmt = $pdo->prepare("
+                    INSERT INTO verification_codes (user_id, code, type, expires_at) 
+                    VALUES (?, ?, 'email', ?)
+                ");
+                $result = $stmt->execute([$userId, $verificationCode, $expiresAt]);
+                
+                if (!$result) {
+                    error_log("Failed to create verification code: " . json_encode($stmt->errorInfo()));
+                }
 
-            // Generate token
-            $token = generateToken($userId);
+                // Generate token
+                $token = generateToken($userId);
 
-            // Log the verification code for development
-            error_log("Verification code for {$data['email']}: {$verificationCode}");
+                // Log the verification code for development
+                error_log("Verification code for {$data['email']}: {$verificationCode}");
 
-            echo json_encode([
-                "success" => true,
-                "token" => $token,
-                "data" => [
-                    "id" => $userId,
-                    "email" => $data['email'],
-                    "firstName" => $data['firstName'],
-                    "lastName" => $data['lastName'],
-                    "isVerified" => false,
-                    "countryCode" => $data['countryCode'] ?? '',
-                    "phone" => $data['phone'] ?? '',
-                    "role" => "user",
-                    "walletBalance" => 0,
-                    "demoBalance" => 10000,
-                    "verificationCode" => $verificationCode // Remove in production
-                ]
-            ]);
+                echo json_encode([
+                    "success" => true,
+                    "token" => $token,
+                    "data" => [
+                        "id" => $userId,
+                        "email" => $data['email'],
+                        "firstName" => $data['firstName'],
+                        "lastName" => $data['lastName'],
+                        "isVerified" => false,
+                        "countryCode" => $data['countryCode'] ?? '',
+                        "phone" => $data['phone'] ?? '',
+                        "role" => "user",
+                        "walletBalance" => 0,
+                        "demoBalance" => 10000,
+                        "verificationCode" => $verificationCode // Remove in production
+                    ]
+                ]);
+                
+            } catch (PDOException $e) {
+                error_log("Database error during registration: " . $e->getMessage());
+                throw new Exception("Database error: " . $e->getMessage());
+            }
 
         } elseif ($route === 'auth/login' && $method === 'POST') {
             // Validate required fields
@@ -355,6 +381,7 @@ try {
         throw new Exception("Route not found");
     }
 } catch (Exception $e) {
+    error_log("API Error: " . $e->getMessage());
     http_response_code(400);
     echo json_encode([
         "success" => false,

@@ -12,8 +12,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, Check, Eye, EyeOff, ChevronRight, Shield, Globe, Clock, Users, Lock, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AuthService } from '../services/api'
 
-// All country codes in a single array (shortened for brevity)
 const countryCodes = [
   { name: "Afghanistan", code: "+93", flag: "🇦🇫" },
   { name: "Albania", code: "+355", flag: "🇦🇱" },
@@ -353,66 +353,65 @@ export default function RegisterForm() {
     try {
       setIsLoading(true)
 
-      // Simulate API call delay with progress
+      // Start progress simulation
       const interval = setInterval(() => {
         setProgress((prev) => {
-          if (prev >= 100) {
+          if (prev >= 90) {
             clearInterval(interval)
-            return 100
+            return 90
           }
-          return prev + 5
+          return prev + 10
         })
-      }, 100)
+      }, 200)
 
-      // Simulate API call delay
-      setTimeout(() => {
-        clearInterval(interval)
+      // Call the real API
+      const response = await AuthService.register({
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        countryCode
+      })
 
-        // Hardcoded successful response - no actual API call
-        const mockResponse = {
-          success: true,
-          token: "mock-jwt-token-for-frontend-demo",
-          user: {
-            id: "user-123",
-            firstName,
-            lastName,
-            email,
-            phone: `${countryCode}${phone}`,
-            isVerified: false, // Set to false so verification is required
-            createdAt: new Date().toISOString(),
-          },
-        }
+      clearInterval(interval)
+      setProgress(100)
 
-        // Store mock token and user data temporarily (will be used during verification)
-        localStorage.setItem("temp_token", mockResponse.token)
-        localStorage.setItem("temp_user", JSON.stringify(mockResponse.user))
+      if (response.success) {
+        // Store the real token and user data
+        localStorage.setItem("token", response.token)
+        localStorage.setItem("user", JSON.stringify(response.data))
 
         // Show success message
         toast({
           title: "Registration successful!",
-          description: "Your account has been created. Please login to continue.",
+          description: "Your account has been created. Please verify your email to continue.",
           variant: "default",
         })
 
         // Set registration success state
         setRegistrationSuccess(true)
 
-        // Redirect to login page after 2 seconds
+        // Redirect to verification page after 2 seconds
         setTimeout(() => {
-          navigate("/login")
+          navigate("/verify")
         }, 2000)
-      }, 2000)
+      } else {
+        throw new Error(response.error || "Registration failed")
+      }
     } catch (err: any) {
       console.error("Registration error:", err)
-      setError("Registration failed. Please try again.")
+      const errorMessage = err.response?.data?.error || err.message || "Registration failed. Please try again."
+      setError(errorMessage)
 
       toast({
         title: "Registration failed",
-        description: "Please check your information and try again",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
+      setProgress(0)
     }
   }
 
@@ -451,7 +450,7 @@ export default function RegisterForm() {
               <Check className="text-white w-8 h-8" />
             </div>
             <p className="text-gray-700 mb-6 text-sm">
-              Your account has been created successfully. You will be redirected to the login page to continue.
+              Your account has been created successfully. Please check your email for the verification code.
             </p>
             <div className="w-full bg-gray-100 rounded-full h-1.5 mt-8 overflow-hidden">
               <div
@@ -459,7 +458,7 @@ export default function RegisterForm() {
                 style={{ width: "100%" }}
               ></div>
             </div>
-            <p className="text-xs text-gray-500 mt-3">Redirecting to login page...</p>
+            <p className="text-xs text-gray-500 mt-3">Redirecting to verification page...</p>
           </CardContent>
         </Card>
       </div>

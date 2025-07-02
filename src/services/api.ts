@@ -43,7 +43,7 @@ api.interceptors.response.use(
     if (error.response.status === 401) {
       // Clear token and redirect to login
       localStorage.removeItem('token');
-      localStorage.removeUser('user');
+      localStorage.removeItem('user');
       window.location.href = '/login';
       return Promise.reject(error);
     }
@@ -55,7 +55,9 @@ api.interceptors.response.use(
 // Auth service
 const authApi = {
   register: async (userData) => {
+    console.log('Sending registration request:', userData);
     const response = await api.post('?route=auth/register', userData);
+    console.log('Registration response:', response.data);
     return response.data;
   },
   
