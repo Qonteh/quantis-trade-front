@@ -40,7 +40,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   try {
-    JSON.parse(user); // Validate user data is parseable
+    const userData = JSON.parse(user);
+    // Check if user is verified for protected routes
+    if (!userData.isVerified) {
+      return <Navigate to="/verify" replace />;
+    }
     return <>{children}</>;
   } catch {
     // If user data is corrupted, redirect to login
@@ -88,7 +92,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Protected routes - require authentication */}
+              {/* Protected routes - require authentication and verification */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardPage />

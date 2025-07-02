@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users, UserCheck, DollarSign, Activity, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { AdminService } from '../services/api';
 import Navigation from './Navigation';
 
 interface User {
@@ -48,28 +49,20 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
       // Fetch users
-      const usersResponse = await fetch('/api?route=admin/users', { headers });
-      const usersData = await usersResponse.json();
+      const usersResponse = await AdminService.getUsers();
       
-      if (usersData.success) {
-        setUsers(usersData.data);
+      if (usersResponse.success) {
+        setUsers(usersResponse.data);
       } else {
-        throw new Error(usersData.error);
+        throw new Error(usersResponse.error);
       }
 
       // Fetch stats
-      const statsResponse = await fetch('/api?route=admin/stats', { headers });
-      const statsData = await statsResponse.json();
+      const statsResponse = await AdminService.getStats();
       
-      if (statsData.success) {
-        setStats(statsData.data);
+      if (statsResponse.success) {
+        setStats(statsResponse.data);
       }
 
     } catch (error: any) {
@@ -85,26 +78,16 @@ export default function AdminDashboard() {
 
   const verifyUser = async (userId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api?route=admin/users/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      const data = await response.json();
+      const response = await AdminService.verifyUser(userId);
       
-      if (data.success) {
+      if (response.success) {
         toast({
           title: "Success",
           description: "User verified successfully",
         });
         fetchData(); // Refresh the data
       } else {
-        throw new Error(data.error);
+        throw new Error(response.error);
       }
     } catch (error: any) {
       toast({
